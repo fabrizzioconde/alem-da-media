@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do Professor · Além da Média</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+:root{
+  --paper:#f5f7f9; --surface:#ffffff; --ink:#16212c; --muted:#5a6978; --grid:#e3e9ef; --rule:#cfd8e1;
+  --curve:#1f3b57; --u:#b3306a; --x:#0b7a72; --xsoft:rgba(11,122,114,.22); --usoft:rgba(179,48,106,.12); --warn:#b7791f;
+  --serif:"Newsreader", Georgia, serif; --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif; --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){color-scheme:dark; --paper:#0e141a; --surface:#151e27; --ink:#e4ebf1; --muted:#93a3b2; --grid:#223040; --rule:#2e3d4d; --curve:#a7c8e8; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --warn:#e0a84a;}
+}
+:root[data-theme="dark"]{color-scheme:dark; --paper:#0e141a; --surface:#151e27; --ink:#e4ebf1; --muted:#93a3b2; --grid:#223040; --rule:#2e3d4d; --curve:#a7c8e8; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --warn:#e0a84a;}
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5}
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:24px 48px; display:grid; gap:20px}
+.eyebrow{margin:0; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:500}
+h1{margin:4px 0 6px; font-family:var(--serif); font-weight:600; font-size:clamp(26px,4vw,36px); line-height:1.1}
+.lede{margin:0; color:var(--muted); max-width:72ch}
+.panel{background:var(--surface); border:1px solid var(--rule); border-radius:10px; padding:16px; display:grid; gap:12px; min-width:0}
+.panel h2{margin:0; font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.drop{border:2px dashed var(--rule); border-radius:10px; padding:22px; text-align:center; color:var(--muted)}
+.drop.over{border-color:var(--x); background:var(--xsoft)}
+.btn{font:inherit; font-size:14px; font-weight:500; padding:8px 14px; border-radius:8px; border:1px solid var(--curve); background:var(--curve); color:var(--surface); cursor:pointer}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--rule)}
+button:focus-visible, select:focus-visible, input:focus-visible{outline:2px solid var(--u); outline-offset:2px}
+.row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+select{font:inherit; font-size:14px; padding:6px 8px; border-radius:6px; border:1px solid var(--rule); background:var(--paper); color:var(--ink)}
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px}
+.card{border:1px solid var(--rule); border-radius:10px; padding:12px 14px; background:var(--surface)}
+.card .k{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em}
+.card .v{font-family:var(--mono); font-size:24px; font-variant-numeric:tabular-nums}
+.tabs{display:inline-grid; grid-auto-flow:column; border:1px solid var(--rule); border-radius:8px; overflow:hidden; gap:1px; background:var(--rule)}
+.tabs button{font:inherit; font-size:13.5px; padding:7px 12px; border:0; background:var(--surface); color:var(--ink); cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--curve); color:var(--surface)}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric:tabular-nums}
+th, td{padding:6px 8px; border-bottom:1px solid var(--grid); text-align:right; white-space:nowrap}
+th{font-weight:500; color:var(--muted); font-size:12px; position:sticky; top:0; background:var(--surface)}
+th:nth-child(-n+2), td:nth-child(-n+2){text-align:left}
+td.t{white-space:normal; min-width:200px}
+.bar{display:inline-block; height:9px; border-radius:2px; background:var(--x); vertical-align:middle; margin-right:6px}
+.bar.low{background:var(--u)}
+.note{font-size:12.5px; color:var(--muted); margin:0}
+.warn{font-size:13px; color:var(--warn); margin:0}
+.answers{display:grid; gap:8px}
+.answers div{border-left:3px solid var(--rule); padding:6px 10px; background:var(--paper); border-radius:4px}
+.answers b{font-family:var(--mono); font-size:12px; color:var(--muted)}
+svg text{font-family:var(--mono); font-size:11px; fill:var(--muted)}
+.help{font-size:14px; color:var(--muted); display:grid; gap:6px; max-width:80ch}
+.help p{margin:0}
+code{font-family:var(--mono); font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Além da média · análise das respostas</p>
+    <h1>Painel do professor</h1>
+    <p class="lede">Carregue os arquivos <code>.json</code> que os alunos baixaram ao final do roteiro. O painel junta tudo, mostra acertos, tentativas e tempo por pergunta e por aluno, e exporta planilhas consolidadas para análise estatística.</p>
+  </header>
+
+  <section class="panel">
+    <h2>1. Carregar arquivos</h2>
+    <div class="drop" id="drop">
+      <p style="margin:0 0 10px">Arraste os arquivos de respostas para cá ou</p>
+      <label class="btn" for="files" style="display:inline-block">Escolher arquivos .json</label>
+      <input type="file" id="files" accept=".json,application/json" multiple hidden>
+    </div>
+    <p class="note" id="status">Nenhum arquivo carregado. Os dados ficam só neste computador: nada é enviado para a internet.</p>
+    <div id="warns"></div>
+  </section>
+
+  <section class="panel" id="out" hidden>
+    <div class="row" style="justify-content:space-between">
+      <h2>2. Resultados</h2>
+      <div class="row"><label for="turma" class="note">Turma</label><select id="turma"></select></div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="row">
+      <div class="tabs" role="group" aria-label="Visão">
+        <button data-t="perg" aria-pressed="true">Por pergunta</button>
+        <button data-t="aluno" aria-pressed="false">Por aluno</button>
+        <button data-t="dist" aria-pressed="false">Tentativas</button>
+        <button data-t="texto" aria-pressed="false">Respostas escritas</button>
+      </div>
+    </div>
+    <div id="v-perg">
+      <div class="row" style="margin-bottom:8px"><label for="ord" class="note">Ordenar</label><select id="ord"><option value="num">Ordem do roteiro</option><option value="dif">Mais difíceis primeiro (acerto na 1ª tentativa)</option><option value="tent">Mais tentativas primeiro</option></select></div>
+      <div class="table-wrap"><table id="t-perg"></table></div>
+      <p class="note">Acerto e tentativas valem para perguntas numéricas e de múltipla escolha. "Tentativas até acertar" considera só quem acertou. Tempo: soma dos períodos em que a pergunta ficou aberta (cada período limitado a 30 min).</p>
+    </div>
+    <div id="v-aluno" hidden><div class="table-wrap"><table id="t-aluno"></table></div></div>
+    <div id="v-dist" hidden>
+      <div class="row"><label for="dq" class="note">Pergunta</label><select id="dq"></select></div>
+      <svg id="dsvg" role="img" aria-label="Distribuição do número de tentativas até acertar"></svg>
+    </div>
+    <div id="v-texto" hidden>
+      <div class="row"><label for="tq" class="note">Pergunta</label><select id="tq"></select></div>
+      <p class="note" id="tq-ask"></p>
+      <div class="answers" id="tq-list"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="exp" hidden>
+    <h2>3. Exportar para análise</h2>
+    <div class="row">
+      <button class="btn" id="e-res">Resumo aluno × pergunta (.csv)</button>
+      <button class="btn ghost" id="e-ev">Todos os eventos (.csv)</button>
+      <button class="btn ghost" id="e-mat">Matriz de tentativas (.csv)</button>
+      <button class="btn ghost" id="e-perg">Estatísticas por pergunta (.csv)</button>
+    </div>
+    <div class="help">
+      <p>Os CSV usam <b>ponto e vírgula</b> como separador e <b>vírgula decimal</b>, e abrem direto no Excel ou LibreOffice em português.</p>
+      <p>No Python: <code>pd.read_csv("resumo.csv", sep=";", decimal=",")</code>. No R: <code>read.csv2("resumo.csv", fileEncoding = "UTF-8-BOM")</code>.</p>
+      <p>O resumo está em formato longo (uma linha por aluno e pergunta), pronto para modelos como regressão logística do acerto ou modelos de contagem para as tentativas.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const nf=(v,d=1)=>Number.isFinite(v)?v.toLocaleString('pt-BR',{maximumFractionDigits:d}):'—';
+const pct=v=>Number.isFinite(v)?nf(v*100,0)+'%':'—';
+const med=a=>{a=a.filter(Number.isFinite).sort((x,y)=>x-y); if(!a.length)return NaN; const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2;};
+const mean=a=>{a=a.filter(Number.isFinite); return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let FILES={}, PERG=[], turmaSel='';
+
+function addFile(name,text){
+  let d; try{d=JSON.parse(text);}catch(e){warn(`${name}: não é um JSON válido.`);return;}
+  if(!d||!Array.isArray(d.resumo)||!Array.isArray(d.eventos)){warn(`${name}: não parece um arquivo de respostas do "Além da média".`);return;}
+  const key=(d.turma||'')+'|'+(d.aluno_id||'anonimo');
+  if(FILES[key]){ if((FILES[key].exportado_em||'')>(d.exportado_em||'')){warn(`${name}: arquivo mais antigo de ${d.aluno_id}; mantido o mais recente.`);return;} warn(`${d.aluno_id} apareceu em mais de um arquivo; usado o mais recente (${name}).`);}
+  d._file=name; FILES[key]=d;
+  if(d.perguntas&&d.perguntas.length>PERG.length) PERG=d.perguntas;
+}
+function warn(t){const p=document.createElement('p'); p.className='warn'; p.textContent=t; $('#warns').appendChild(p);}
+async function handle(list){
+  for(const f of list){ addFile(f.name, await f.text()); }
+  const n=Object.keys(FILES).length;
+  $('#status').textContent=`${n} aluno(s) carregado(s). Você pode adicionar mais arquivos a qualquer momento.`;
+  const vers=new Set(Object.values(FILES).map(d=>d.versao)); if(vers.size>1) warn('Atenção: há arquivos de versões diferentes do roteiro ('+[...vers].join(', ')+'). Compare perguntas pelo identificador.');
+  const turmas=[...new Set(Object.values(FILES).map(d=>d.turma||'(sem turma)'))].sort();
+  $('#turma').innerHTML='<option value="">Todas</option>'+turmas.map(t=>`<option>${esc(t)}</option>`).join('');
+  $('#turma').value=turmas.includes(turmaSel)?turmaSel:'';
+  $('#out').hidden=n===0; $('#exp').hidden=n===0; render();
+}
+$('#files').addEventListener('change',e=>handle(e.target.files));
+const dz=$('#drop');
+['dragenter','dragover'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault(); dz.classList.add('over');}));
+['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault(); dz.classList.remove('over');}));
+dz.addEventListener('drop',e=>handle(e.dataTransfer.files));
+$('#turma').addEventListener('change',e=>{turmaSel=e.target.value; render();});
+
+function data(){return Object.values(FILES).filter(d=>!turmaSel||(d.turma||'(sem turma)')===turmaSel);}
+function rows(){return data().flatMap(d=>d.resumo);}
+function statsPerg(){
+  const R=rows();
+  return PERG.map(p=>{
+    const r=R.filter(x=>x.pergunta_id===p.id), gr=p.tipo==='num'||p.tipo==='choice';
+    const resp=r.filter(x=>x.tentativas>0);
+    const ok=resp.filter(x=>x.acertou===1), first=resp.filter(x=>x.acertou_primeira===1);
+    return {num:p.num,id:p.id,titulo:p.titulo,parte:p.parte,tipo:p.tipo,gr,
+      respondentes:resp.length, alunos:r.length,
+      acerto:gr&&resp.length?ok.length/resp.length:NaN, acerto1:gr&&resp.length?first.length/resp.length:NaN,
+      tentMedia:mean(resp.map(x=>x.tentativas)), tentMed:med(resp.map(x=>x.tentativas)), tentMax:resp.length?Math.max(...resp.map(x=>x.tentativas)):NaN,
+      ateAcertar:mean(ok.map(x=>x.tentativas_ate_acertar)),
+      dica:r.length?r.filter(x=>x.dicas>0).length/r.length:NaN,
+      tempoMed:med(r.filter(x=>x.tempo_total_s>0).map(x=>x.tempo_total_s))};
+  });
+}
+function render(){
+  const D=data(), R=rows(), S=statsPerg();
+  const gr=S.filter(s=>s.gr&&s.respondentes);
+  const tempoAluno=D.map(d=>d.resumo.reduce((a,x)=>a+(x.tempo_total_s||0),0)/60);
+  $('#cards').innerHTML=[
+    ['Alunos',D.length],
+    ['Perguntas respondidas (média por aluno)',nf(mean(D.map(d=>d.resumo.filter(x=>x.tentativas>0).length)),1)+' de '+PERG.length],
+    ['Acerto na 1ª tentativa (média das perguntas)',pct(mean(gr.map(s=>s.acerto1)))],
+    ['Tempo mediano no roteiro',nf(med(tempoAluno),0)+' min']
+  ].map(([k,v])=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  // por pergunta
+  const ord=$('#ord').value; const SS=[...S];
+  if(ord==='dif') SS.sort((a,b)=>(Number.isFinite(a.acerto1)?a.acerto1:2)-(Number.isFinite(b.acerto1)?b.acerto1:2));
+  if(ord==='tent') SS.sort((a,b)=>(b.tentMedia||0)-(a.tentMedia||0));
+  $('#t-perg').innerHTML='<tr><th>#</th><th>Pergunta</th><th>Tipo</th><th>Responderam</th><th>Acertaram</th><th>Acerto na 1ª</th><th>Tentativas (média)</th><th>Mediana</th><th>Máx.</th><th>Até acertar</th><th>Usou dica</th><th>Tempo mediano</th></tr>'+
+    SS.map(s=>`<tr><td>${s.num}</td><td class="t">${esc(s.titulo)}<br><span class="note">${esc(s.parte)}</span></td><td>${{num:'numérica',choice:'escolha',text:'escrita',predict:'previsão'}[s.tipo]||s.tipo}</td><td>${s.respondentes} / ${s.alunos}</td><td>${pct(s.acerto)}</td>
+      <td>${Number.isFinite(s.acerto1)?`<span class="bar${s.acerto1<0.5?' low':''}" style="width:${Math.round(s.acerto1*60)}px"></span>`:''}${pct(s.acerto1)}</td>
+      <td>${nf(s.tentMedia,2)}</td><td>${nf(s.tentMed,1)}</td><td>${nf(s.tentMax,0)}</td><td>${nf(s.ateAcertar,2)}</td><td>${pct(s.dica)}</td><td>${Number.isFinite(s.tempoMed)?nf(s.tempoMed,0)+' s':'—'}</td></tr>`).join('');
+  // por aluno
+  $('#t-aluno').innerHTML='<tr><th>Aluno</th><th>Turma</th><th>Respondidas</th><th>Acertos</th><th>Acerto na 1ª</th><th>Tentativas</th><th>Dicas</th><th>Tabelas corretas</th><th>Tempo total</th><th>Arquivo</th></tr>'+
+    D.sort((a,b)=>String(a.aluno_id).localeCompare(String(b.aluno_id))).map(d=>{const r=d.resumo, g=r.filter(x=>(x.tipo_pergunta==='num'||x.tipo_pergunta==='choice')&&x.tentativas>0);
+      return `<tr><td>${esc(d.aluno_id)}</td><td>${esc(d.turma)}</td><td>${r.filter(x=>x.tentativas>0).length}</td><td>${g.filter(x=>x.acertou===1).length} / ${g.length}</td><td>${pct(g.length?g.filter(x=>x.acertou_primeira===1).length/g.length:NaN)}</td>
+      <td>${r.reduce((a,x)=>a+x.tentativas,0)}</td><td>${r.reduce((a,x)=>a+x.dicas,0)}</td><td>${r.filter(x=>x.tabela_correta===1).length}</td><td>${nf(r.reduce((a,x)=>a+(x.tempo_total_s||0),0)/60,0)} min</td><td class="note">${esc(d._file)}</td></tr>`;}).join('');
+  // selects
+  const gq=PERG.filter(p=>p.tipo==='num'||p.tipo==='choice'), tq=PERG.filter(p=>p.tipo==='text'||p.tipo==='predict');
+  const keep=(sel,list)=>{const v=$(sel).value; $(sel).innerHTML=list.map(p=>`<option value="${p.id}">${p.num}. ${esc(p.titulo)}</option>`).join(''); if(list.some(p=>p.id===v))$(sel).value=v;};
+  keep('#dq',gq); keep('#tq',tq); renderDist(); renderText();
+}
+function renderDist(){
+  const id=$('#dq').value, R=rows().filter(x=>x.pergunta_id===id&&x.tentativas>0), svg=$('#dsvg');
+  const cats=['1','2','3','4','5+','não acertou']; const c=[0,0,0,0,0,0];
+  R.forEach(x=>{ if(x.acertou!==1)c[5]++; else c[Math.min(4,x.tentativas_ate_acertar-1)]++; });
+  const W=Math.max(300,svg.parentNode.clientWidth), H=240, L=40, B=36, T=16, Rr=10, bw=(W-L-Rr)/cats.length, mx=Math.max(1,...c);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('width','100%');
+  let h=''; const stp=Math.max(1,Math.ceil(mx/4)); const top=stp*Math.ceil(mx/stp); for(let v=0;v<=top;v+=stp){ const y=T+(H-T-B)*(1-v/top); h+=`<line x1="${L}" x2="${W-Rr}" y1="${y}" y2="${y}" stroke="var(--grid)"/><text x="${L-6}" y="${y+4}" text-anchor="end">${v}</text>`;}
+  cats.forEach((t,i)=>{const hh=(H-T-B)*c[i]/top, x=L+i*bw+bw*0.15, y=H-B-hh;
+    h+=`<rect x="${x}" y="${y}" width="${bw*0.7}" height="${hh}" fill="${i===5?'var(--u)':'var(--x)'}" opacity="${i===5?.7:.8}"/><text x="${x+bw*0.35}" y="${H-B+16}" text-anchor="middle">${t}</text>${c[i]?`<text x="${x+bw*0.35}" y="${y-5}" text-anchor="middle" style="fill:var(--ink)">${c[i]}</text>`:''}`;});
+  h+=`<text x="${L+(W-L-Rr)/2}" y="${H-4}" text-anchor="middle">tentativas até acertar (n = ${R.length} alunos que responderam)</text>`;
+  svg.innerHTML=h;
+}
+function renderText(){
+  const id=$('#tq').value, p=PERG.find(q=>q.id===id); $('#tq-ask').textContent=p?p.enunciado||'':'';
+  const R=rows().filter(x=>x.pergunta_id===id&&x.resposta_final!=='');
+  $('#tq-list').innerHTML=R.length?R.map(x=>`<div><b>${esc(x.aluno_id)}</b><br>${esc(x.resposta_final)}</div>`).join(''):'<p class="note">Nenhuma resposta escrita para esta pergunta.</p>';
+}
+$('#ord').addEventListener('change',render); $('#dq').addEventListener('change',renderDist); $('#tq').addEventListener('change',renderText);
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b)); ['perg','aluno','dist','texto'].forEach(t=>$('#v-'+t).hidden=t!==b.dataset.t); if(b.dataset.t==='dist')renderDist();});
+window.addEventListener('resize',()=>{if(!$('#v-dist').hidden)renderDist();});
+
+/* exportação */
+function toCSV(rows,cols){const e=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>e(r[c])).join(';')).join('\r\n');}
+function dl(name,text){const b=new Blob(['﻿'+text],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
+const tag=()=>(turmaSel?turmaSel.replace(/[^\w-]+/g,'_')+'_':'')+new Date().toISOString().slice(0,10);
+const COLS_RES=['aluno_id','turma','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
+const COLS_EV=['aluno_id','turma','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
+$('#e-res').onclick=()=>dl(`resumo_aluno_pergunta_${tag()}.csv`,toCSV(rows(),COLS_RES));
+$('#e-ev').onclick=()=>dl(`eventos_${tag()}.csv`,toCSV(data().flatMap(d=>d.eventos),COLS_EV));
+$('#e-mat').onclick=()=>{const D=data(); const cols=['aluno_id','turma',...PERG.map(p=>'q'+String(p.num).padStart(2,'0')+'_'+p.id)];
+  const rs=D.map(d=>{const o={aluno_id:d.aluno_id,turma:d.turma}; PERG.forEach(p=>{const r=d.resumo.find(x=>x.pergunta_id===p.id); o['q'+String(p.num).padStart(2,'0')+'_'+p.id]=r?r.tentativas:'';}); return o;});
+  dl(`matriz_tentativas_${tag()}.csv`,toCSV(rs,cols));};
+$('#e-perg').onclick=()=>{const S=statsPerg().map(s=>({num:s.num,id:s.id,titulo:s.titulo,parte:s.parte,tipo:s.tipo,respondentes:s.respondentes,alunos:s.alunos,prop_acerto:round(s.acerto),prop_acerto_1a:round(s.acerto1),tentativas_media:round(s.tentMedia),tentativas_mediana:s.tentMed,tentativas_max:s.tentMax,ate_acertar_media:round(s.ateAcertar),prop_dica:round(s.dica),tempo_mediano_s:s.tempoMed}));
+  dl(`estatisticas_por_pergunta_${tag()}.csv`,toCSV(S,Object.keys(S[0]||{})));};
+function round(v){return Number.isFinite(v)?Math.round(v*1000)/1000:'';}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1837 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Além da Média</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+:root{
+  --paper:#f5f7f9; --surface:#ffffff; --ink:#16212c; --muted:#5a6978; --grid:#e3e9ef; --rule:#cfd8e1;
+  --curve:#1f3b57; --step:#9fb0c0; --norm:#b7791f; --og:#6a4c9c; --u:#b3306a; --x:#0b7a72; --xsoft:rgba(11,122,114,.22); --usoft:rgba(179,48,106,.12); --neg:rgba(179,48,106,.07);
+  --btn:#1f3b57; --btnink:#ffffff; --focus:#b3306a;
+  --serif:"Newsreader", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0e141a; --surface:#151e27; --ink:#e4ebf1; --muted:#93a3b2; --grid:#223040; --rule:#2e3d4d;
+    --curve:#a7c8e8; --step:#566a7d; --norm:#e0a84a; --og:#b9a0e6; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --neg:rgba(240,122,168,.08);
+    --btn:#a7c8e8; --btnink:#0e141a; --focus:#f07aa8;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0e141a; --surface:#151e27; --ink:#e4ebf1; --muted:#93a3b2; --grid:#223040; --rule:#2e3d4d;
+  --curve:#a7c8e8; --step:#566a7d; --norm:#e0a84a; --og:#b9a0e6; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --neg:rgba(240,122,168,.08);
+  --btn:#a7c8e8; --btnink:#0e141a; --focus:#f07aa8;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5}
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:24px 48px}
+header{display:grid; gap:6px; margin-bottom:20px; max-width:760px}
+.eyebrow{margin:0; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:500}
+h1{margin:0; font-family:var(--serif); font-weight:600; font-size:clamp(28px,4vw,40px); line-height:1.1; text-wrap:balance}
+.lede{margin:0; color:var(--muted); max-width:66ch}
+.lede b{color:var(--ink); font-weight:600}
+.u{color:var(--u); font-weight:600} .x{color:var(--x); font-weight:600}
+
+.layout{display:grid; grid-template-columns:minmax(290px,350px) minmax(0,1fr); gap:20px; align-items:start}
+.col{display:grid; gap:20px; min-width:0}
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .col{display:contents}
+  #p-data{order:1} #p-sim{order:2} #p-charts{order:3} #p-u{order:4}
+}
+.panel{background:var(--surface); border:1px solid var(--rule); border-radius:10px; padding:16px; display:grid; gap:14px; min-width:0}
+.panel h2{margin:0; font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:600}
+label, .lbl{font-size:13px; color:var(--muted); font-weight:500}
+.field{display:grid; gap:6px}
+textarea, input[type=number], input[type=text]{font:inherit; font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--paper); border:1px solid var(--rule); border-radius:6px; padding:8px 10px; width:100%}
+textarea{min-height:64px; resize:vertical}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:inherit; font-size:13px; padding:5px 10px; border-radius:999px; border:1px solid var(--rule); background:transparent; color:var(--ink); cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+.row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.seg{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden}
+.seg button{font:inherit; font-size:13px; padding:8px 4px; border:0; background:var(--surface); color:var(--ink); cursor:pointer; line-height:1.25}
+.seg.tabs{display:inline-grid; grid-template-columns:auto auto}
+.seg.tabs button{padding:7px 14px}
+.seg button small{display:block; color:var(--muted); font-size:11px}
+.seg button[aria-pressed="true"]{background:var(--curve); color:var(--surface)}
+.seg button[aria-pressed="true"] small{color:var(--surface); opacity:.8}
+.btn{font:inherit; font-size:14px; font-weight:500; padding:8px 14px; border-radius:8px; border:1px solid var(--btn); background:var(--btn); color:var(--btnink); cursor:pointer}
+.btn.ghost{background:transparent; color:var(--ink); border-color:var(--rule)}
+.btn.accent{background:var(--u); border-color:var(--u); color:var(--surface)}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+button:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+.check{display:flex; gap:8px; align-items:center; font-size:13px; color:var(--muted)}
+input[type=range]{width:100%; accent-color:var(--u)}
+.note{font-size:12.5px; color:var(--muted); margin:0}
+.err{font-size:12.5px; color:var(--u); margin:0}
+
+.speed{display:grid; grid-template-columns:auto minmax(120px,1fr) auto; gap:10px; align-items:center; background:var(--paper); border-radius:8px; padding:10px 12px}
+.speed output{font-family:var(--mono); font-size:13px; min-width:9ch; text-align:right}
+
+.stepper{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.stepper li{font-size:12px; line-height:1.25; padding:6px 6px 6px 8px; border-radius:6px; border:1px solid var(--rule); color:var(--muted); display:grid; gap:2px}
+.stepper li b{font-family:var(--mono); font-size:11px; font-weight:500}
+.stepper li.on{border-color:var(--u); background:var(--usoft); color:var(--ink)}
+.stepper li.done{color:var(--ink)}
+
+.chart{position:relative}
+.chart svg{display:block; width:100%; height:auto; touch-action:none}
+.chart-title{display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap}
+.chart-title h3{margin:0; font-family:var(--serif); font-size:19px; font-weight:500}
+.legend{display:flex; flex-wrap:wrap; gap:12px; font-size:12px; color:var(--muted)}
+.legend i{display:inline-block; width:18px; height:0; border-top:2px solid; vertical-align:middle; margin-right:5px}
+svg text{font-family:var(--mono); font-size:11px; fill:var(--muted)}
+.gridline{stroke:var(--grid); stroke-width:1}
+.axis{stroke:var(--rule); stroke-width:1}
+.c-hazen{fill:none; stroke:var(--curve); stroke-width:2.2; stroke-linejoin:round}
+.c-step{fill:none; stroke:var(--step); stroke-width:1.6}
+.c-norm{fill:none; stroke:var(--norm); stroke-width:2.2}
+.c-og{fill:none; stroke:var(--og); stroke-width:2.2; stroke-linejoin:round}
+.knot.og{stroke:var(--og)}
+.dens.o{stroke:var(--og)}
+.c-dim{opacity:.55; stroke-dasharray:4 3; stroke-width:1.5}
+.knot{fill:var(--surface); stroke:var(--curve); stroke-width:1.6}
+.rug{stroke:var(--ink); stroke-width:1.5; opacity:.7}
+.negzone{fill:var(--neg)}
+.t-neg{fill:var(--u); font-size:10.5px}
+.g-u{stroke:var(--u); stroke-width:1.6; stroke-dasharray:5 3}
+.g-x{stroke:var(--x); stroke-width:1.6; stroke-dasharray:5 3}
+.seg-hi{fill:none; stroke:var(--x); stroke-width:4; stroke-linecap:round; opacity:.55}
+.ball{fill:var(--u); stroke:var(--surface); stroke-width:2}
+.ball.down{fill:var(--x)}
+.t-u{fill:var(--u); font-weight:500; font-size:12px}
+.t-x{fill:var(--x); font-weight:500; font-size:12px}
+.halo{paint-order:stroke; stroke:var(--surface); stroke-width:4px; stroke-linejoin:round}
+.bar{fill:var(--xsoft); stroke:var(--x); stroke-width:1}
+.bar.new{fill:var(--u); stroke:var(--u); opacity:.55}
+.dens{fill:none; stroke:var(--curve); stroke-width:2}
+.dens.n{stroke:var(--norm)}
+.mass{fill:var(--u)}
+.t-mass{fill:var(--u); font-size:10.5px}
+.hit{fill:transparent; cursor:crosshair}
+
+.calc{font-family:var(--mono); font-size:13px; background:var(--paper); border-radius:8px; padding:12px; display:grid; gap:6px; line-height:1.5; overflow-x:auto; min-height:120px}
+.calc .k{color:var(--muted)}
+.calc .ln{transition:opacity .25s}
+.calc .ln.pending{opacity:.18}
+.calc .ln.cur{border-left:3px solid var(--u); padding-left:8px; margin-left:-11px}
+.calc .warn{color:var(--u)}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric:tabular-nums}
+th, td{padding:5px 8px; text-align:right; border-bottom:1px solid var(--grid); white-space:nowrap}
+th{font-weight:500; color:var(--muted); font-size:12px}
+th:first-child, td:first-child{text-align:left}
+td{font-family:var(--mono); font-size:12.5px}
+tr.hi td{background:var(--usoft)}
+.knots td, .knots th{text-align:center}
+.sim-grid{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:20px}
+@media (max-width:640px){ .sim-grid{grid-template-columns:minmax(0,1fr)} .stepper{grid-template-columns:repeat(2,1fr)} }
+.how{margin-top:20px; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
+.how div{border-top:2px solid var(--rule); padding-top:10px}
+.how h4{margin:0 0 4px; font-size:14px; font-weight:600}
+.how p{margin:0; font-size:13.5px; color:var(--muted)}
+.big{font-family:var(--mono); font-size:13px}
+.builder{margin-top:20px}
+.b-head{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:12px}
+.b-head h2{font-family:var(--serif); font-size:24px; font-weight:500; letter-spacing:0; text-transform:none; color:var(--ink)}
+.b-head p{margin:4px 0 0; color:var(--muted); font-size:14px; max-width:70ch}
+.b-grid{display:grid; grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr); gap:20px; align-items:start}
+@media (max-width:900px){ .b-grid{grid-template-columns:minmax(0,1fr)} }
+.b-side{display:grid; gap:12px; min-width:0}
+.b-classes{display:flex; flex-wrap:wrap; gap:10px; align-items:end}
+.b-classes .field{width:130px}
+.bcap{background:var(--paper); border-radius:8px; padding:12px 14px; font-size:14px; line-height:1.55; min-height:132px}
+.bcap .mono{font-family:var(--mono); font-size:13px}
+.bcap p{margin:0 0 6px}
+.brick{fill:var(--xsoft); stroke:var(--x); stroke-width:1}
+.brick.done{opacity:.35}
+.brick.cur{fill:var(--usoft); stroke:var(--u); stroke-width:1.5}
+.carry{fill:var(--grid); stroke:var(--rule); stroke-width:1}
+.t-brick{font-size:10px; fill:var(--ink)}
+.t-carry{font-size:10.5px; fill:var(--muted)}
+.t-p{font-size:11px; fill:var(--ink); font-weight:500}
+.ogive{fill:none; stroke:var(--curve); stroke-width:2.2; stroke-linejoin:round}
+.ogive.ext{stroke-dasharray:4 3; opacity:.6}
+.opt{fill:var(--surface); stroke:var(--curve); stroke-width:2}
+.opt.cur{stroke:var(--u); fill:var(--u)}
+.trap{fill:none; stroke:var(--u); stroke-width:1.6; stroke-dasharray:5 3}
+.tpt{fill:var(--u)}
+.spt{stroke-width:2}
+.spt.ok{fill:var(--x); stroke:var(--x)} .spt.bad{fill:var(--surface); stroke:var(--u)}
+.sline{fill:none; stroke:var(--x); stroke-width:1.6; stroke-dasharray:3 3}
+.edge{stroke:var(--rule); stroke-dasharray:2 3}
+.t-panel{font-family:var(--sans); font-size:12px; fill:var(--ink); font-weight:500}
+.btable tr.cur td{background:var(--usoft)}
+.btable td.q{color:var(--muted); opacity:.5}
+.btable input{width:78px; font-family:var(--mono); font-size:12.5px; text-align:right; padding:3px 6px; border:1px solid var(--rule); border-radius:4px; background:var(--surface); color:var(--ink)}
+.ok{color:var(--x); font-weight:600} .bad{color:var(--u); font-weight:600}
+.radios{display:grid; gap:4px; font-size:13.5px}
+.radios label{display:flex; gap:8px; align-items:center; color:var(--ink); font-weight:400}
+.fb{font-size:13.5px; margin:0; padding:10px 12px; border-radius:8px; background:var(--paper)}
+body.aula .adv{display:none!important}
+.idcard{display:grid; grid-template-columns:1fr 160px; gap:10px; align-items:end; padding:10px 12px; border:1px dashed var(--rule); border-radius:10px}
+.idcard .note{grid-column:1/-1}
+@media (max-width:520px){ .idcard{grid-template-columns:1fr} }
+.export{display:grid; gap:8px; border-top:1px solid var(--rule); padding-top:12px}
+.export b{font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+.rep-err{stroke:var(--u); stroke-width:2.5; opacity:.7}
+.rep-pt{fill:var(--x); stroke:var(--surface); stroke-width:1.5}
+.rep-c{stroke:var(--u); stroke-width:2}
+.rep-curve{fill:none; stroke:var(--curve); stroke-width:2.2}
+.hzhide{display:none!important}
+.sheet{border:1px solid var(--rule); border-radius:10px; padding:12px 14px; display:grid; gap:10px; background:var(--surface)}
+.sh-head{display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center}
+.sh-head b{font-family:var(--serif); font-size:17px; font-weight:500}
+.sh-lv{display:inline-grid; grid-template-columns:repeat(3,auto)}
+.sh-lv button{padding:5px 10px; font-size:12.5px}
+.sheet input{width:84px; font-family:var(--mono); font-size:13px; text-align:right; padding:4px 6px; border:1px solid var(--rule); border-radius:5px; background:var(--paper); color:var(--ink)}
+.sheet input.sh-ok{border-color:var(--x); box-shadow:0 0 0 1px var(--x)}
+.sheet input.sh-bad{border-color:var(--u); box-shadow:0 0 0 1px var(--u)}
+.sheet-t td, .sheet-t th{text-align:center}
+.sheet-t tr.sum td{font-weight:600; border-top:2px solid var(--rule)}
+.sheet-t tr.big td{background:var(--xsoft)}
+.sh-mean label, .sh-res label{font-size:13.5px; color:var(--ink); font-weight:400}
+.sh-res{display:grid; gap:6px}
+.sh-res b{font-family:var(--mono); font-size:13.5px}
+.enun{border:1px solid var(--rule); border-radius:10px; padding:10px 14px; background:var(--paper)}
+.enun summary{cursor:pointer; font-family:var(--serif); font-size:17px; font-weight:500}
+.enun[open] summary{margin-bottom:10px}
+.enun-box{border-left:3px solid var(--curve); background:var(--surface); padding:10px 12px; border-radius:6px}
+.enun-box b{font-size:13px; letter-spacing:.04em; text-transform:uppercase; color:var(--curve)}
+.enun-box p{margin:4px 0 0; font-size:14.5px}
+.enun-d{margin:10px 0 4px; font-size:14px; font-weight:500}
+.enun ul{margin:0; padding-left:20px; display:grid; gap:3px; font-size:14px}
+.enun .mono{font-family:var(--mono); font-size:13px}
+.enun-q{margin:10px 0 0; font-size:14px; font-style:italic; color:var(--muted)}
+body.aula #m-normal{grid-column:span 2}
+.topbar{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:16px; margin-bottom:20px}
+.topbar header{margin:0}
+.roteiro{margin-bottom:20px}
+.r-grid{display:grid; grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr); gap:20px; align-items:start}
+@media (max-width:900px){ .r-grid{grid-template-columns:minmax(0,1fr)} }
+.r-parts{display:flex; flex-wrap:wrap; gap:6px}
+.r-parts button{font:inherit; font-size:12.5px; padding:5px 10px; border-radius:6px; border:1px solid var(--rule); background:transparent; color:var(--muted); cursor:pointer}
+.r-parts button[aria-current="true"]{border-color:var(--ink); color:var(--ink); font-weight:600}
+.r-dots{display:flex; flex-wrap:wrap; gap:4px; margin-top:8px}
+.r-dots button{width:22px; height:22px; border-radius:50%; border:1px solid var(--rule); background:var(--surface); font:500 10.5px var(--mono); color:var(--muted); cursor:pointer; padding:0}
+.r-dots button.ok{background:var(--x); border-color:var(--x); color:#fff}
+.r-dots button.done{background:var(--xsoft); border-color:var(--x); color:var(--ink)}
+.r-dots button.cur{outline:2px solid var(--u); outline-offset:1px}
+.r-card{display:grid; gap:12px}
+.r-card h3{margin:0; font-family:var(--serif); font-size:22px; font-weight:500; line-height:1.2; text-wrap:balance}
+.r-meta{font-size:12px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin:0}
+.r-ctx{margin:0; color:var(--muted); font-size:14.5px; max-width:70ch}
+.r-ask{margin:0; font-size:16px; max-width:70ch}
+.r-answer{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.r-answer input[type=text]{width:140px}
+.r-answer textarea{min-height:70px; width:100%; font-family:var(--sans); font-size:14px}
+.r-opts{display:grid; gap:6px}
+.r-opts button{font:inherit; font-size:14px; text-align:left; padding:9px 12px; border-radius:8px; border:1px solid var(--rule); background:var(--surface); color:var(--ink); cursor:pointer}
+.r-opts button.sel-ok{border-color:var(--x); background:var(--xsoft)}
+.r-opts button.sel-bad{border-color:var(--u); background:var(--usoft)}
+.r-fb{margin:0; padding:10px 12px; border-radius:8px; background:var(--paper); font-size:14px}
+.r-fb.ok{border-left:3px solid var(--x)} .r-fb.bad{border-left:3px solid var(--u)}
+.r-com{margin:0; padding:12px 14px; border-radius:8px; border:1px dashed var(--rule); font-size:14px}
+.r-nav{display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center}
+.quadro h4{margin:0 0 6px; font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+.fab{position:fixed; right:16px; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:5; font:500 13px var(--sans); padding:9px 14px; border-radius:999px; border:1px solid var(--u); background:var(--u); color:var(--surface); cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.18)}
+details.fold{border-top:1px solid var(--rule); padding-top:10px}
+details.fold summary{cursor:pointer; font-size:13.5px; color:var(--muted); font-weight:500}
+details.fold[open] summary{margin-bottom:10px}
+.month-grid{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:16px; align-items:start}
+@media (max-width:640px){ .month-grid{grid-template-columns:minmax(0,1fr)} }
+.bud{stroke:var(--u); stroke-width:2; stroke-dasharray:5 3}
+.bar.over{fill:var(--usoft); stroke:var(--u)}
+.dens.samp{stroke:var(--ink); stroke-dasharray:4 3; opacity:.75}
+kbd{font-family:var(--mono); font-size:11px; border:1px solid var(--rule); border-radius:4px; padding:0 4px}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+<style>[hidden]{display:none!important} body{margin:0} img{max-width:100%}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <div class="topbar">
+  <header>
+    <p class="eyebrow">Laboratório de estatística · média, variação e risco</p>
+    <h1>Além da média</h1>
+    <p class="lede">Dois ônibus podem levar o mesmo tempo <b>em média</b> e, mesmo assim, um deles fazer você perder a prova. Aqui você vai medir o quanto os dados <b>variam</b>, transformar esses dados num <span class="u">sorteador</span> e simular centenas de dias para ver <span class="x">com que frequência as coisas dão errado</span>.</p>
+  </header>
+  <div class="row">
+  <button class="btn ghost" id="snd" aria-pressed="false" title="Sons curtos nos sorteios e nas respostas">♪ Som: desligado</button>
+  <button class="btn ghost" id="theme" title="Alternar entre tema automático, claro e escuro">◐ Tema: automático</button>
+  <div class="seg tabs" role="group" aria-label="Modo da página">
+    <button id="v-aula" aria-pressed="true">Modo aula</button>
+    <button id="v-full" aria-pressed="false">Modo completo</button>
+  </div>
+  </div>
+  </div>
+
+  <section class="panel roteiro" id="roteiro" aria-labelledby="r-title">
+    <div class="r-grid">
+      <div class="r-card">
+        <div class="idcard" id="idcard">
+          <div class="field"><label for="id-aluno">Seu código (matrícula ou apelido combinado)</label><input type="text" id="id-aluno" autocomplete="off"></div>
+          <div class="field"><label for="id-turma">Turma</label><input type="text" id="id-turma" autocomplete="off"></div>
+          <p class="note" id="id-info"></p>
+        </div>
+        <div>
+          <div class="r-parts" id="r-parts" role="group" aria-label="Partes do roteiro"></div>
+          <div class="r-dots" id="r-dots" role="group" aria-label="Perguntas"></div>
+        </div>
+        <details class="enun" id="enun" open><summary id="enun-sum">Enunciado</summary><div id="enun-body"></div></details>
+        <p class="r-meta" id="r-meta"></p>
+        <h3 id="r-title"></h3>
+        <p class="r-ctx" id="r-ctx"></p>
+        <div class="row" id="r-actions"></div>
+        <p class="r-ask" id="r-ask"></p>
+        <div id="r-input"></div>
+        <div class="sheet" id="r-sheet" hidden></div>
+        <div class="sheet" id="r-rep" hidden></div>
+        <p class="r-fb" id="r-fb" hidden></p>
+        <p class="r-com" id="r-com" hidden></p>
+        <div class="r-nav">
+          <div class="row"><button class="btn ghost" id="r-prev">◂ Anterior</button><button class="btn" id="r-next">Próxima ▸</button></div>
+          <div class="row"><button class="btn ghost" id="r-showcom">Ver comentário</button><button class="btn ghost" id="r-copy">Copiar minhas respostas</button></div>
+        </div>
+        <div class="export">
+          <b>Entregar respostas</b>
+          <p class="note">Ao terminar, baixe o arquivo de respostas e envie ao professor. Se o download não funcionar (por exemplo, no link online), use "Copiar" e cole num arquivo de texto.</p>
+          <div class="row">
+            <button class="btn accent" id="x-json">Baixar respostas (.json)</button>
+            <button class="btn ghost" id="x-csv">Baixar tentativas (.csv)</button>
+            <button class="btn ghost" id="x-copy">Copiar respostas (JSON)</button>
+            <button class="btn ghost" id="x-reset">Novo aluno neste computador</button>
+          </div>
+        </div>
+        <textarea id="r-copy-fb" hidden readonly></textarea>
+      </div>
+      <div class="quadro">
+        <h4>Quadro de resultados</h4>
+        <p class="note">Cada simulação registrada entra aqui para comparar média, desvio-padrão (DP) e risco.</p>
+        <div class="table-wrap"><table id="quadro"></table></div>
+        <div class="row" style="margin-top:8px"><button class="btn ghost" id="q-clear">Limpar quadro</button></div>
+      </div>
+    </div>
+  </section>
+  <button class="fab" id="fab" hidden>↑ Roteiro</button>
+
+  <div class="layout">
+    <div class="col">
+      <section class="panel" id="p-data" aria-labelledby="h-data">
+        <h2 id="h-data">Dados e método</h2>
+        <div class="chips" id="presets" role="group" aria-label="Conjuntos de exemplo"></div>
+        <div class="field">
+          <label for="data">Valores observados (separe por vírgula ou espaço; decimal com ponto)</label>
+          <textarea id="data" spellcheck="false"></textarea>
+          <p class="err" id="data-err" hidden></p>
+        </div>
+        <div class="row"><button class="btn ghost" id="apply">Aplicar dados</button></div>
+        <div class="field">
+          <span class="lbl" id="lbl-mode">Método de inversão</span>
+          <div class="seg" role="group" aria-labelledby="lbl-mode">
+            <button id="m-hazen" aria-pressed="true">Hazen<small>tipo 5 · rampa</small></button>
+            <button id="m-ogiva" aria-pressed="false">Ogiva<small>classes do histograma</small></button>
+            <button id="m-normal" aria-pressed="false">Normal<small>μ e σ dos dados</small></button>
+            <button id="m-step" aria-pressed="false" class="adv">Escada<small>tipo 1 · bootstrap</small></button>
+          </div>
+          <label class="check adv"><input type="checkbox" id="show-other" checked> Mostrar as outras curvas para comparar</label>
+          <p class="note" id="norm-note"></p>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="thr">Limite t para P(X ≤ t)</label><input type="number" id="thr" step="any"></div>
+          <div class="field"><label for="seed">Semente</label><input type="number" id="seed" value="2026" step="1"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="p-u" aria-labelledby="h-u">
+        <h2 id="h-u">Passo a passo da inversa</h2>
+        <ol class="stepper" id="stepper" aria-label="Etapas de um sorteio">
+          <li data-s="1"><b>1</b>Sortear u</li>
+          <li data-s="2"><b>2</b>Ir até a curva</li>
+          <li data-s="3"><b>3</b>Descer até x</li>
+          <li data-s="4"><b>4</b>Registrar</li>
+        </ol>
+        <div class="calc" id="calc" aria-live="polite"></div>
+        <div class="field">
+          <label for="u">u manual: <span class="u big" id="u-val">0,437</span> <span class="note">(ou arraste sobre o gráfico)</span></label>
+          <input type="range" id="u" min="0.001" max="0.999" step="0.001" value="0.437">
+        </div>
+        <div class="row"><button class="btn ghost" id="add-manual">Adicionar este x à amostra</button></div>
+        <div class="table-wrap"><table class="knots" id="knots"></table></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" id="p-sim" aria-labelledby="h-sim">
+        <h2 id="h-sim">Simulação de Monte Carlo</h2>
+        <div class="speed">
+          <label for="speed">Tempo por sorteio</label>
+          <input type="range" id="speed" min="0" max="9" step="1" value="6">
+          <output id="speed-val" for="speed">6 s</output>
+        </div>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="stepmode"> Avançar manualmente cada etapa</label>
+          <button class="btn accent" id="next" disabled>Próxima etapa ▸</button>
+          <span class="note" id="next-hint"></span>
+        </div>
+        <div class="row">
+          <button class="btn" id="d1">Sortear 1</button>
+          <button class="btn" id="d10">Sortear 10</button>
+          <button class="btn" id="d1000">Sortear 1000 (instantâneo)</button>
+          <button class="btn ghost" id="stop" disabled>Parar</button>
+          <button class="btn ghost" id="copy">Copiar amostra (CSV)</button>
+          <button class="btn ghost" id="clear">Limpar</button>
+        </div>
+        <p class="note" id="eta"></p>
+        <p class="note" id="copy-msg" hidden></p>
+        <textarea id="copy-fallback" hidden readonly></textarea>
+      </section>
+
+      <section class="panel" id="p-charts">
+        <div class="chart">
+          <div class="chart-title">
+            <h3>Acumulada F(x) e a inversa</h3>
+            <div class="legend" id="leg-cdf"></div>
+          </div>
+          <svg id="cdf" role="img" aria-label="Gráfico da função acumulada com a inversa do valor u"></svg>
+        </div>
+        <div class="chart">
+          <div class="chart-title">
+            <h3>Valores simulados</h3>
+            <div class="legend" id="leg-hist"></div>
+          </div>
+          <svg id="hist" role="img" aria-label="Histograma dos valores simulados"></svg>
+          <p class="note" id="bins-note"></p>
+          <div class="row adv">
+            <label for="bins" class="lbl">Classes</label>
+            <input type="range" id="bins" min="5" max="50" step="1" value="20" style="width:140px">
+            <span class="big" id="bins-val">20</span>
+          </div>
+        </div>
+        <div class="sim-grid">
+          <div class="table-wrap"><table id="stats"></table></div>
+          <div class="table-wrap"><table id="draws"></table></div>
+        </div>
+        <div class="row"><button class="btn ghost" id="reg-day">Registrar no quadro</button><button class="btn ghost" id="show-data" hidden>Mostrar valores da amostra</button></div>
+      </section>
+
+      <section class="panel" id="p-month" aria-labelledby="h-month">
+        <h2 id="h-month">Somar vários dias: o mês</h2>
+        <p class="note">Cada mês simulado soma os valores de vários dias sorteados com o método atual.</p>
+        <div class="row">
+          <div class="field" style="width:110px"><label for="m-days">Dias</label><input type="number" id="m-days" value="30" min="1" max="366" step="1"></div>
+          <div class="field" style="width:140px"><label for="m-bud">Orçamento (limite)</label><input type="number" id="m-bud" value="350" step="any"></div>
+          <button class="btn" id="m-run" style="align-self:end">Simular 1000 meses</button>
+          <button class="btn ghost" id="m-reg" style="align-self:end">Registrar no quadro</button>
+        </div>
+        <div class="month-grid">
+          <div class="chart"><svg id="msvg" role="img" aria-label="Histograma dos totais mensais simulados"></svg></div>
+          <div class="table-wrap"><table id="mstats"></table></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel builder" id="builder" aria-labelledby="h-b">
+    <div class="b-head">
+      <div>
+        <h2 id="h-b">Do histograma à acumulada</h2>
+        <p>Cada tijolinho é uma observação e vale 1/n de altura. Empilhe os tijolinhos da esquerda para a direita e marque os pontos da acumulada: na <b>ogiva</b>, no fim de cada classe; em <b>Hazen</b>, no meio de cada tijolo, com uma “classe” por observação.</p>
+      </div>
+      <div class="row">
+      <div class="seg tabs" role="group" aria-label="Método de construção">
+        <button id="bm-og" aria-pressed="true">Ogiva (classes)</button>
+        <button id="bm-hz" aria-pressed="false">Hazen (por observação)</button>
+      </div>
+      <div class="seg tabs" role="group" aria-label="Modo">
+        <button id="t-show" aria-pressed="true">Ver construção</button>
+        <button id="t-prac" aria-pressed="false">Praticar</button>
+      </div>
+      </div>
+    </div>
+    <details class="fold" id="og-fold"><summary>Ajustar classes (opcional)</summary>
+    <div class="b-classes">
+      <div class="field"><label for="og-h">Largura h da classe</label><input type="number" id="og-h" step="any"></div>
+      <div class="field"><label for="og-a0">Início a₀ da 1ª classe</label><input type="number" id="og-a0" step="any"></div>
+      <button class="btn ghost" id="og-apply">Aplicar classes</button>
+      <button class="btn ghost" id="og-auto">Sugerir classes</button>
+      <p class="err" id="og-err" hidden></p>
+    </div>
+    <p class="note">Classes fechadas à esquerda, [a ; b). A sugestão usa a regra de Sturges para h e começa meia unidade abaixo do menor dado, para que nenhum dado caia exatamente numa borda.</p>
+    </details>
+    <div class="b-grid">
+      <div class="chart"><svg id="bsvg" role="img" aria-label="Histograma da amostra empilhado para formar a acumulada"></svg></div>
+      <div class="b-side">
+        <div id="b-showctl" class="b-side">
+          <div class="row">
+            <button class="btn ghost" id="b-prev">◂ Voltar</button>
+            <button class="btn" id="b-next">Próximo ▸</button>
+            <button class="btn ghost" id="b-play">Reproduzir</button>
+            <button class="btn ghost" id="b-reset">Recomeçar</button>
+          </div>
+          <div class="bcap" id="bcap" aria-live="polite"></div>
+        </div>
+        <div id="b-pracctl" class="b-side" hidden>
+          <div class="field">
+            <span class="lbl" id="pos-q">1. Em que posição x você marca o ponto (x ; F) de cada classe?</span>
+            <div class="radios" role="radiogroup">
+              <label><input type="radio" name="pos" value="L"> <span id="pos-L">Na borda esquerda a da classe</span></label>
+              <label><input type="radio" name="pos" value="C"> <span id="pos-C">No centro m da classe</span></label>
+              <label><input type="radio" name="pos" value="R"> <span id="pos-R">Na borda direita b da classe</span></label>
+            </div>
+          </div>
+          <span class="lbl" id="pf-lbl">2. Preencha a coluna F (aceita 0,4 ou 4/10) e confira.</span>
+          <div class="row">
+            <button class="btn" id="p-check">Conferir</button>
+            <button class="btn ghost" id="p-hint">Dica</button>
+            <button class="btn ghost" id="p-answer">Mostrar resposta</button>
+            <button class="btn ghost" id="p-clear">Limpar</button>
+          </div>
+          <p class="fb" id="p-fb">Preencha a acumulada de cada classe e escolha onde marcar o ponto.</p>
+        </div>
+        <label class="check adv"><input type="checkbox" id="b-trap"> Mostrar a armadilha: ponto no centro da classe</label>
+        <label class="check adv"><input type="checkbox" id="b-hazen"> Comparar com a rampa de Hazen (por observação)</label>
+        <div class="table-wrap"><table class="btable" id="btable"></table></div>
+        <div class="row"><button class="btn accent" id="b-use">Usar esta ogiva na simulação ↑</button></div>
+      </div>
+    </div>
+  </section>
+
+  <details class="fold" style="margin-top:20px"><summary>Notas técnicas</summary>
+  <div class="how" style="margin-top:0">
+    <div><h4>Nós da rampa</h4><p>Cada observação ordenada x₍ₖ₎ recebe a altura (k − 0,5)/n, o meio do seu degrau na escada. Entre dois nós a acumulada é uma reta, e a densidade nesse trecho vale (1/n)/(x₍ₖ₊₁₎ − x₍ₖ₎).</p></div>
+    <div><h4>A conta da inversa</h4><p>Com h = n·u + 0,5, j = ⌊h⌋ e g = h − j, o valor sorteado é x = x₍ⱼ₎ + g·(x₍ⱼ₊₁₎ − x₍ⱼ₎). É o mesmo que <code>np.quantile(dados, u, method="hazen")</code>.</p></div>
+    <div><h4>Normal ajustada</h4><p>Usa μ = média e σ = desvio-padrão (÷ n) dos dados: z = Φ⁻¹(u) e x = μ + σ·z. Ela ignora a forma dos dados e pode gerar valores impossíveis, como tempos negativos (faixa sombreada).</p></div>
+    <div><h4>Caudas e empates</h4><p>Na rampa, se u &lt; 0,5/n o resultado gruda no mínimo; se u &gt; 1 − 0,5/n, no máximo. Valores repetidos geram trechos verticais. São massas pontuais, marcadas com ▲ no histograma.</p></div>
+  </div>
+  </details>
+</div>
+
+<script>
+(function(){
+const NS='http://www.w3.org/2000/svg';
+const $=s=>document.querySelector(s);
+function S(tag,attrs,parent){const e=document.createElementNS(NS,tag);if(attrs)for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+const nf=(v,d)=>Number.isFinite(v)?v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:d==null?2:d}):'—';
+const nfix=(v,d)=>Number.isFinite(v)?v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const PRESETS=[
+  {id:'onibus',label:'Ônibus · Ativ. 1',data:[20,60,30,80,25,75,20,50,65,15],t:45},
+  {id:'metro',label:'Metrô · Ativ. 1',data:[40,41,39,40,40,42,39,40,41,38],t:45},
+  {id:'banho',label:'Irmã Y · Ativ. 2',data:[5,20,5,5,20,5,5,15],t:15},
+  {id:'onibus2',label:'Ônibus linha 2 · extra',data:[15,43,43,43,43,43,43,43,44,80],t:45},
+  {id:'irmaoX',label:'Irmão X · Ativ. 2',data:[9,11,10,10,9,11,10,10],t:15},
+  {id:'amigoA',label:'Amigo A · Ativ. 3',data:[10,11,10,12,11,12],t:20},
+  {id:'amigo',label:'Amigo B · Ativ. 3',data:[0,25,0,30,0,11],t:20}
+];
+const SPEEDS=[0.3,0.6,1,1.5,2,3,6,9,12,20];
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ---------- Normal ---------- */
+function Phi(z){const t=1/(1+0.3275911*Math.abs(z)/Math.SQRT2);const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-z*z/2);return z>=0?0.5*(1+y):0.5*(1-y);}
+function PhiInv(p){
+  const a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const pl=0.02425;
+  if(p<pl){const q=Math.sqrt(-2*Math.log(p));return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p<=1-pl){const q=p-0.5,r=q*q;return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  const q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+
+const st={xs:[],n:0,mode:'hazen',showOther:true,u:0.437,draws:[],rng:mulberry32(2026),t:45,bins:20,busy:false,guide:{u:0.437,t:2},stepMode:false,stop:false,phase:0,lastNew:null,view:'aula',preset:null,quadro:[],month:null};
+const M={l:44,r:14,t:14,b:30};
+let cdfG={};
+
+/* ---------- modelo ---------- */
+function setData(arr){
+  st.raw=arr.slice(); st.xs=arr.slice().sort((a,b)=>a-b); st.n=arr.length; st.draws=[];
+  autoClasses(); buildOgive();
+  st.mu=arr.reduce((a,b)=>a+b,0)/st.n; st.sd=Math.sqrt(arr.reduce((s,v)=>s+(v-st.mu)**2,0)/st.n)||1e-9;
+  computeDomain();
+}
+function computeDomain(){
+  const a=st.xs[0], b=st.xs[st.n-1]; const r=(b-a)||Math.max(1,Math.abs(a)*0.2);
+  let lo=a-0.08*r, hi=b+0.08*r;
+  if(st.mode==='normal'){lo=Math.min(lo,st.mu-3.3*st.sd); hi=Math.max(hi,st.mu+3.3*st.sd);}
+  if(st.mode==='ogiva'&&st.og){const h=st.og.h; lo=Math.min(lo,st.og.edges[0]-0.3*h); hi=Math.max(hi,st.og.edges[st.og.K]+0.3*h);}
+  st.dmin=lo; st.dmax=hi;
+}
+/* ---------- ogiva (classes) ---------- */
+function niceStep(raw){const p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return (f<1.5?1:f<3?2:f<7?5:10)*p;}
+function autoClasses(){
+  const x=st.xs,n=st.n; let dec=0;
+  for(const v of x){const s=String(v); const i=s.indexOf('.'); if(i>=0) dec=Math.max(dec,Math.min(3,s.length-i-1));}
+  const res=Math.pow(10,-dec); const range=(x[n-1]-x[0])||res*4;
+  const K0=Math.ceil(1+Math.log2(n)); let h=Math.max(res,niceStep(range/K0));
+  st.ogH=h; st.ogA0=+(x[0]-res/2).toFixed(dec+1);
+}
+function buildOgive(){
+  const x=st.xs,n=st.n,h=st.ogH,a0=st.ogA0;
+  let K=Math.max(1,Math.ceil((x[n-1]-a0)/h-1e-9)); if(a0+K*h<x[n-1])K++;
+  K=Math.min(K,60);
+  const edges=[];for(let k=0;k<=K;k++)edges.push(+(a0+k*h).toFixed(10));
+  const members=Array.from({length:K},()=>[]);
+  for(const v of x){let j=Math.floor((v-a0)/h+1e-12); if(j>=K)j=K-1; if(j<0)j=0; members[j].push(v);}
+  const counts=members.map(m=>m.length), p=counts.map(c=>c/n), F=[0];
+  for(let j=0;j<K;j++)F.push(F[j]+p[j]); F[K]=1;
+  st.og={edges,members,counts,p,F,K,h,a0};
+}
+function qOg(u){
+  const og=st.og; let j=1; while(j<og.K&&og.F[j]<u)j++;
+  const a=og.edges[j-1],pj=og.p[j-1]; const x=a+(u-og.F[j-1])/pj*og.h;
+  return {x,j,a,b:og.edges[j],Fa:og.F[j-1],Fb:og.F[j],pj};
+}
+function Fog(t){
+  const og=st.og; if(t<=og.edges[0])return 0; if(t>=og.edges[og.K])return 1;
+  let j=Math.min(og.K-1,Math.floor((t-og.edges[0])/og.h)); return og.F[j]+(t-og.edges[j])/og.h*og.p[j];
+}
+function qHazen(u){
+  const n=st.n,x=st.xs,h=n*u+0.5;
+  if(h<=1) return {x:x[0],h,region:'low'};
+  if(h>=n) return {x:x[n-1],h,region:'high'};
+  const j=Math.floor(h),g=h-j;
+  return {x:x[j-1]+g*(x[j]-x[j-1]),h,j,g,region:'mid'};
+}
+function qStep(u){const n=st.n;const k=Math.min(n,Math.max(1,Math.ceil(n*u)));return {x:st.xs[k-1],k};}
+function qNorm(u){const z=PhiInv(u);return {x:st.mu+st.sd*z,z};}
+function quant(u,mode){mode=mode||st.mode;return mode==='hazen'?qHazen(u):mode==='step'?qStep(u):mode==='ogiva'?qOg(u):qNorm(u);}
+function Fhazen(t){
+  const n=st.n,x=st.xs; if(t<x[0])return 0; if(t>=x[n-1])return 1;
+  let k=0; while(k<n-1&&x[k+1]<=t)k++;
+  return (k+0.5)/n+(t-x[k])/(x[k+1]-x[k])/n;
+}
+function Fstep(t){let c=0;for(const v of st.xs)if(v<=t)c++;return c/st.n;}
+function Fnorm(t){return Phi((t-st.mu)/st.sd);}
+function Fmodel(t){return st.mode==='hazen'?Fhazen(t):st.mode==='step'?Fstep(t):st.mode==='ogiva'?Fog(t):Fnorm(t);}
+function PltModel(t){ // P(X < t)
+  if(st.mode==='normal') return Fnorm(t);
+  if(st.mode==='ogiva') return Fog(t);
+  if(st.mode==='step'){let c=0;for(const v of st.xs)if(v<t)c++;return c/st.n;}
+  const x=st.xs,n=st.n; if(t<=x[0])return 0; if(t>x[n-1])return 1; return Fhazen(t-1e-12*Math.max(1,Math.abs(t)));
+}
+function masses(mode){
+  if(mode==='normal'||mode==='ogiva')return [];
+  const m=new Map(),n=st.n,x=st.xs;const add=(v,p)=>m.set(v,(m.get(v)||0)+p);
+  if(mode==='hazen'){add(x[0],0.5/n);add(x[n-1],0.5/n);for(let k=0;k<n-1;k++)if(x[k]===x[k+1])add(x[k],1/n);}
+  else{for(const v of x)add(v,1/n);}
+  return [...m.entries()].map(([v,p])=>({v,p}));
+}
+function hazenSegs(){const s=[],x=st.xs,n=st.n;for(let k=0;k<n-1;k++)if(x[k+1]>x[k])s.push({a:x[k],b:x[k+1],d:(1/n)/(x[k+1]-x[k])});return s;}
+function modelMoments(mode){
+  const x=st.xs,n=st.n;const mean=st.mu;
+  if(mode==='normal')return {mean:st.mu,v:st.sd*st.sd};
+  if(mode==='ogiva'){const og=st.og;let m1=0,m2=0;for(let j=0;j<og.K;j++){const a=og.edges[j],b=og.edges[j+1];m1+=og.p[j]*(a+b)/2;m2+=og.p[j]*(a*a+a*b+b*b)/3;}return {mean:m1,v:m2-m1*m1};}
+  let e2;
+  if(mode==='hazen'){
+    e2=0.5/n*(x[0]*x[0]+x[n-1]*x[n-1]);
+    for(let k=0;k<n-1;k++){const a=x[k],b=x[k+1];e2+=(a*a+a*b+b*b)/3/n;}
+  } else { e2=x.reduce((s,v)=>s+v*v,0)/n; }
+  return {mean,v:e2-mean*mean};
+}
+
+/* ---------- escalas ---------- */
+function niceTicks(a,b,count){
+  const span=b-a; if(span<=0)return [a];
+  const raw=span/count, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p;
+  const step=(f<1.5?1:f<3?2:f<7?5:10)*p;
+  const out=[]; for(let v=Math.ceil(a/step)*step; v<=b+1e-9; v+=step) out.push(Math.round(v/step)*step);
+  return out;
+}
+function sizeOf(svg,ratio,minH,maxH){
+  const W=Math.max(300,svg.parentNode.clientWidth); const H=Math.round(Math.min(maxH,Math.max(minH,W*ratio)));
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); return {W,H};
+}
+function mkX(W){return v=>M.l+(v-st.dmin)/(st.dmax-st.dmin)*(W-M.l-M.r);}
+function negZone(g,sx,top,bottom){
+  if(st.dmin<0&&st.xs[0]>=0){
+    S('rect',{x:sx(st.dmin),y:top,width:sx(0)-sx(st.dmin),height:bottom-top,class:'negzone'},g);
+    const t=S('text',{x:(sx(st.dmin)+sx(0))/2,y:top+14,'text-anchor':'middle',class:'t-neg'},g); t.textContent='x < 0';
+  }
+}
+
+/* ---------- gráfico da acumulada ---------- */
+function renderCDF(){
+  const svg=$('#cdf'); svg.textContent='';
+  const {W,H}=sizeOf(svg,0.52,250,380); const sx=mkX(W); const sy=p=>M.t+(1-p)*(H-M.t-M.b);
+  cdfG={W,H,sx,sy};
+  const g=S('g',null,svg);
+  negZone(g,sx,M.t,H-M.b);
+  for(const p of [0,0.25,0.5,0.75,1]){
+    S('line',{x1:M.l,x2:W-M.r,y1:sy(p),y2:sy(p),class:'gridline'},g);
+    const t=S('text',{x:M.l-6,y:sy(p)+4,'text-anchor':'end'},g); t.textContent=nf(p,2);
+  }
+  const ticks=niceTicks(st.dmin,st.dmax,Math.max(4,Math.floor(W/90)));
+  for(const v of ticks){
+    S('line',{x1:sx(v),x2:sx(v),y1:M.t,y2:H-M.b,class:'gridline'},g);
+    const t=S('text',{x:sx(v),y:H-M.b+16,'text-anchor':'middle'},g); t.textContent=nf(v,2);
+  }
+  S('line',{x1:M.l,x2:W-M.r,y1:sy(0),y2:sy(0),class:'axis'},g);
+  S('line',{x1:M.l,x2:M.l,y1:M.t,y2:H-M.b,class:'axis'},g);
+  const yl=S('text',{x:12,y:M.t+(H-M.t-M.b)/2,'text-anchor':'middle',transform:`rotate(-90 12 ${M.t+(H-M.t-M.b)/2})`},g); yl.textContent='u = F(x)';
+
+  const x=st.xs,n=st.n,mode=st.mode,show=m=>st.showOther||mode===m;
+  if(show('step')){
+    let ds=`M${sx(st.dmin)},${sy(0)}`;
+    for(const v of [...new Set(x)]) ds+=` H${sx(v)} V${sy(Fstep(v))}`;
+    ds+=` H${sx(st.dmax)}`;
+    S('path',{d:ds,class:'c-step'+(mode==='step'?'':' c-dim')},g);
+  }
+  if(show('normal')){
+    let dn=''; const N=160; for(let i=0;i<=N;i++){const v=st.dmin+(st.dmax-st.dmin)*i/N; dn+=(i?' L':'M')+sx(v)+','+sy(Fnorm(v));}
+    S('path',{d:dn,class:'c-norm'+(mode==='normal'?'':' c-dim')},g);
+  }
+  if(show('hazen')){
+    let dh=`M${sx(st.dmin)},${sy(0)} H${sx(x[0])}`;
+    for(let k=0;k<n;k++) dh+=` L${sx(x[k])},${sy((k+0.5)/n)}`;
+    dh+=` L${sx(x[n-1])},${sy(1)} H${sx(st.dmax)}`;
+    S('path',{d:dh,class:'c-hazen'+(mode==='hazen'?'':' c-dim')},g);
+  }
+  if(show('ogiva')&&st.og){
+    const og=st.og; let d=`M${sx(st.dmin)},${sy(0)} H${sx(og.edges[0])}`;
+    for(let k=0;k<=og.K;k++) d+=` L${sx(og.edges[k])},${sy(og.F[k])}`;
+    d+=` H${sx(st.dmax)}`; S('path',{d,class:'c-og'+(mode==='ogiva'?'':' c-dim')},g);
+    if(mode==='ogiva') for(let k=0;k<=og.K;k++) S('circle',{cx:sx(og.edges[k]),cy:sy(og.F[k]),r:3.2,class:'knot og'},g);
+  }
+  if(mode==='hazen') for(let k=0;k<n;k++) S('circle',{cx:sx(x[k]),cy:sy((k+0.5)/n),r:3.2,class:'knot'},g);
+  for(const v of x) S('line',{x1:sx(v),x2:sx(v),y1:sy(0)-6,y2:sy(0)+1,class:'rug'},g);
+
+  cdfG.guide=S('g',null,svg);
+  const hit=S('rect',{x:M.l,y:M.t,width:W-M.l-M.r,height:H-M.t-M.b,class:'hit'},svg);
+  const pick=e=>{
+    if(st.busy)return; const r=svg.getBoundingClientRect(); const yy=(e.clientY-r.top)*(H/r.height);
+    let u=1-(yy-M.t)/(H-M.t-M.b); u=Math.min(0.999,Math.max(0.001,Math.round(u*1000)/1000));
+    st.u=u; $('#u').value=u; st.guide={u,t:2}; updateGuide(); updateCalc(u,3); setPhase(0);
+  };
+  hit.addEventListener('pointerdown',e=>{hit.setPointerCapture(e.pointerId);pick(e);});
+  hit.addEventListener('pointermove',e=>{if(e.buttons)pick(e);});
+
+  const leg=$('#leg-cdf'); const items=[];
+  if(show('hazen')) items.push(['var(--curve)','Hazen']);
+  if(show('step')) items.push(['var(--step)','Escada']);
+  if(show('ogiva')) items.push(['var(--og)','Ogiva']);
+  if(show('normal')) items.push(['var(--norm)','Normal']);
+  items.push(['var(--u)','u'],['var(--x)','x sorteado']);
+  leg.innerHTML=items.map(([c,t])=>`<span><i style="border-color:${c}"></i>${t}</span>`).join('');
+  updateGuide();
+}
+function updateGuide(){
+  const G=cdfG.guide; if(!G)return; G.textContent='';
+  const {sx,sy,W}=cdfG; const {u,t}=st.guide; const q=quant(u); const x=st.xs;
+  const px0=sx(st.dmin), py=sy(u), px1=sx(q.x), py0=sy(0);
+  if(t>=1&&st.mode==='ogiva'){S('line',{x1:sx(q.a),y1:sy(q.Fa),x2:sx(q.b),y2:sy(q.Fb),class:'seg-hi'},G);}
+  if(t>=1&&st.mode==='hazen'&&q.region==='mid'){const j=q.j;S('line',{x1:sx(x[j-1]),y1:sy((j-0.5)/st.n),x2:sx(x[j]),y2:sy((j+0.5)/st.n),class:'seg-hi'},G);}
+  const hx=t<1?px0+(px1-px0)*Math.max(0,t):px1;
+  if(t>0) S('line',{x1:px0,y1:py,x2:hx,y2:py,class:'g-u'},G);
+  let by=py;
+  if(t>1){by=py+(py0-py)*Math.min(1,t-1); S('line',{x1:px1,y1:py,x2:px1,y2:by,class:'g-x'},G);}
+  S('circle',{cx:hx,cy:by,r:5.5,class:'ball'+(t>1?' down':'')},G);
+  const tu=S('text',{x:px0+6,y:(py0-py<26&&t>=2)?py0-28:py-6,class:'t-u halo'},G); tu.textContent='u = '+nfix(u,3);
+  if(t>=2){
+    const right=px1>W*0.72; const tx=S('text',{x:right?px1-6:px1+6,y:py0-8,'text-anchor':right?'end':'start',class:'t-x halo'},G);
+    tx.textContent='x = '+nf(q.x,2);
+  }
+}
+
+/* ---------- histograma ---------- */
+function renderHist(){
+  const svg=$('#hist'); svg.textContent='';
+  const {W,H}=sizeOf(svg,0.36,190,280); const sx=mkX(W);
+  const E=histEdges(), nb=E.length-1, N=st.draws.length;
+  const binOf=v=>{if(v<E[0])return 0; if(v>=E[nb])return nb-1; let lo=0,hi=nb; while(hi-lo>1){const m=(lo+hi)>>1; if(E[m]<=v)lo=m; else hi=m;} return lo;};
+  const cnt=new Array(nb).fill(0); for(const d of st.draws) cnt[binOf(d.x)]++;
+  const newBin=st.lastNew!=null?binOf(st.lastNew):-1;
+  const dens=cnt.map((c,i)=>N?c/(N*(E[i+1]-E[i])):0);
+  const mode=st.mode; const segs=mode==='hazen'?hazenSegs():[];
+  const sampOver=mode!=='ogiva'&&st.og; const sampD=st.og?st.og.p.map(p=>p/st.og.h):[];
+  const npdf=v=>Math.exp(-0.5*((v-st.mu)/st.sd)**2)/(st.sd*Math.sqrt(2*Math.PI));
+  const ogd=mode==='ogiva'?st.og.p.map(p=>p/st.og.h):[];
+  let ymax=Math.max(...dens, ...segs.map(s=>s.d), ...ogd, ...(sampOver?sampD:[]), mode==='normal'?npdf(st.mu):0, 0); if(!(ymax>0)) ymax=1/(st.dmax-st.dmin); ymax*=1.15;
+  const sy=v=>M.t+(1-v/ymax)*(H-M.t-M.b);
+  const g=S('g',null,svg);
+  negZone(g,sx,M.t,H-M.b);
+  for(const v of niceTicks(0,ymax,4)){
+    S('line',{x1:M.l,x2:W-M.r,y1:sy(v),y2:sy(v),class:'gridline'},g);
+    const t=S('text',{x:M.l-6,y:sy(v)+4,'text-anchor':'end'},g); t.textContent=nf(v,3);
+  }
+  for(const v of niceTicks(st.dmin,st.dmax,Math.max(4,Math.floor(W/90)))){const t=S('text',{x:sx(v),y:H-M.b+16,'text-anchor':'middle'},g); t.textContent=nf(v,2);}
+  const yl=S('text',{x:12,y:M.t+(H-M.t-M.b)/2,'text-anchor':'middle',transform:`rotate(-90 12 ${M.t+(H-M.t-M.b)/2})`},g); yl.textContent='densidade';
+  for(let i=0;i<nb;i++){ if(!cnt[i])continue; const a=Math.max(st.dmin,E[i]), b=Math.min(st.dmax,E[i+1]); if(b<=a)continue;
+    S('rect',{x:sx(a)+0.5,y:sy(dens[i]),width:Math.max(0.5,sx(b)-sx(a)-1),height:sy(0)-sy(dens[i]),class:'bar'+(i===newBin?' new':'')},g);}
+  if(sampOver){const og=st.og;let d=`M${sx(og.edges[0])},${sy(0)}`;for(let j=0;j<og.K;j++)d+=` L${sx(og.edges[j])},${sy(sampD[j])} L${sx(og.edges[j+1])},${sy(sampD[j])}`;d+=` L${sx(og.edges[og.K])},${sy(0)}`;S('path',{d,class:'dens samp'},g);}
+  if(mode==='hazen'&&segs.length){
+    let d=`M${sx(segs[0].a)},${sy(0)}`; for(const s of segs) d+=` L${sx(s.a)},${sy(s.d)} L${sx(s.b)},${sy(s.d)}`;
+    d+=` L${sx(segs[segs.length-1].b)},${sy(0)}`; S('path',{d,class:'dens'},g);
+  }
+  if(mode==='ogiva'){const og=st.og;let d=`M${sx(og.edges[0])},${sy(0)}`;for(let j=0;j<og.K;j++)d+=` L${sx(og.edges[j])},${sy(ogd[j])} L${sx(og.edges[j+1])},${sy(ogd[j])}`;d+=` L${sx(og.edges[og.K])},${sy(0)}`;S('path',{d,class:'dens o'},g);}
+  if(mode==='normal'){let d='';for(let i=0;i<=160;i++){const v=st.dmin+(st.dmax-st.dmin)*i/160;d+=(i?' L':'M')+sx(v)+','+sy(npdf(v));}S('path',{d,class:'dens n'},g);}
+  S('line',{x1:M.l,x2:W-M.r,y1:sy(0),y2:sy(0),class:'axis'},g);
+  S('line',{x1:M.l,x2:M.l,y1:M.t,y2:H-M.b,class:'axis'},g);
+  const y0=sy(0);
+  masses(mode).forEach((m,i)=>{
+    const cx=sx(m.v); S('path',{d:`M${cx-5},${y0} L${cx+5},${y0} L${cx},${y0-8} Z`,class:'mass'},g);
+    const t=S('text',{x:cx,y:y0-12-(i%2)*11,'text-anchor':'middle',class:'t-mass halo'},g); t.textContent=nf(m.p,3);
+  });
+  const parts=[`<span><i style="border-color:var(--x);border-top-width:8px;opacity:.5"></i>simulados (N = ${N.toLocaleString('pt-BR')})</span>`];
+  if(st.lastNew!=null) parts.push('<span><i style="border-color:var(--u);border-top-width:8px;opacity:.6"></i>classe do último sorteio</span>');
+  if(mode==='hazen') parts.push('<span><i style="border-color:var(--curve)"></i>densidade da rampa</span>');
+  if(mode==='normal') parts.push('<span><i style="border-color:var(--norm)"></i>densidade Normal</span>');
+  if(mode==='ogiva') parts.push('<span><i style="border-color:var(--og)"></i>histograma da amostra (= densidade da ogiva)</span>');
+  if(sampOver) parts.push('<span><i style="border-color:var(--ink);border-top-style:dashed"></i>histograma da amostra</span>');
+  if(mode==='hazen'||mode==='step') parts.push('<span style="color:var(--u)">▲ massa pontual</span>');
+  $('#leg-hist').innerHTML=parts.join('');
+}
+
+function histEdges(){
+  if(st.view==='aula'&&st.og){
+    const h=st.og.h; const a=st.og.edges[0]-Math.max(0,Math.ceil((st.og.edges[0]-st.dmin)/h))*h;
+    const E=[]; for(let v=a; E.length<400; v+=h){E.push(+v.toFixed(10)); if(v>=st.dmax)break;}
+    $('#bins-note').textContent=`As barras usam as mesmas classes da amostra (h = ${nf(h,3)}), para comparar os formatos diretamente.`;
+    return E;
+  }
+  $('#bins-note').textContent='';
+  const nb=st.bins,bw=(st.dmax-st.dmin)/nb; return Array.from({length:nb+1},(_,i)=>st.dmin+i*bw);
+}
+/* ---------- painéis ---------- */
+function sub(k){return `x<sub>(${k})</sub>`;}
+function updateCalc(u,level){
+  if(level==null)level=3; const n=st.n, x=st.xs; $('#u-val').textContent=nfix(u,3);
+  const L=[]; const add=(lv,html)=>L.push({lv,html});
+  if(st.mode==='hazen'){
+    const q=qHazen(u);
+    add(1,`<span class="k">n =</span> ${n}   <span class="k">u =</span> <span class="u">${nfix(u,3)}</span>`);
+    add(2,`<span class="k">h = n·u + 0,5 =</span> ${n}·${nfix(u,3)} + 0,5 = ${nfix(q.h,3)}`);
+    if(q.region==='low'){add(2,`h ≤ 1 → cauda inferior (u ≤ 0,5/n = ${nfix(0.5/n,3)})`); add(3,`<span class="k">x =</span> ${sub(1)} = <span class="x">${nf(q.x,3)}</span>`);}
+    else if(q.region==='high'){add(2,`h ≥ n → cauda superior (u ≥ 1 − 0,5/n = ${nfix(1-0.5/n,3)})`); add(3,`<span class="k">x =</span> ${sub(n)} = <span class="x">${nf(q.x,3)}</span>`);}
+    else{
+      const j=q.j,a=x[j-1],b=x[j];
+      add(2,`<span class="k">j = ⌊h⌋ =</span> ${j}   <span class="k">g = h − j =</span> ${nfix(q.g,3)}<br>segmento entre ${sub(j)} = ${nf(a,3)} e ${sub(j+1)} = ${nf(b,3)}`);
+      add(3,`<span class="k">x = ${sub(j)} + g·(${sub(j+1)} − ${sub(j)})</span><br>x = ${nf(a,3)} + ${nfix(q.g,3)}·(${nf(b,3)} − ${nf(a,3)}) = <span class="x">${nf(q.x,3)}</span>`);
+      if(a===b) add(3,`<span class="k">empate: ${sub(j)} = ${sub(j+1)}, trecho vertical (massa pontual)</span>`);
+    }
+  } else if(st.mode==='step'){
+    const q=qStep(u);
+    add(1,`<span class="k">n =</span> ${n}   <span class="k">u =</span> <span class="u">${nfix(u,3)}</span>`);
+    add(2,`<span class="k">k = ⌈n·u⌉ =</span> ⌈${nfix(n*u,3)}⌉ = ${q.k}<br><span class="k">primeiro degrau com F(x) ≥ u</span>`);
+    add(3,`<span class="k">x =</span> ${sub(q.k)} = <span class="x">${nf(q.x,3)}</span>`);
+  } else if(st.mode==='ogiva'){
+    const og=st.og,q=qOg(u);
+    add(1,`<span class="k">K =</span> ${og.K} classes   <span class="k">h =</span> ${nf(og.h,3)}   <span class="k">u =</span> <span class="u">${nfix(u,3)}</span>`);
+    add(2,`<span class="k">classe ${q.j}:</span> F(${nf(q.a,3)}) = ${nfix(q.Fa,3)} &lt; u ≤ F(${nf(q.b,3)}) = ${nfix(q.Fb,3)}<br><span class="k">f/n da classe =</span> ${nfix(q.pj,3)}`);
+    add(3,`<span class="k">x = a + (u − F(a))/(f/n)·h</span><br>x = ${nf(q.a,3)} + (${nfix(u,3)} − ${nfix(q.Fa,3)})/${nfix(q.pj,3)}·${nf(og.h,3)} = <span class="x">${nf(q.x,3)}</span>`);
+    if(q.x<0&&st.xs[0]>=0) add(3,`<span class="warn">valor negativo: a 1ª classe começa abaixo de zero</span>`);
+  } else {
+    const q=qNorm(u);
+    add(1,`<span class="k">μ =</span> ${nf(st.mu,3)}   <span class="k">σ =</span> ${nf(st.sd,3)}   <span class="k">u =</span> <span class="u">${nfix(u,3)}</span>`);
+    add(2,`<span class="k">z = Φ⁻¹(u) =</span> Φ⁻¹(${nfix(u,3)}) = ${nfix(q.z,3)}`);
+    add(3,`<span class="k">x = μ + σ·z</span><br>x = ${nf(st.mu,3)} + ${nf(st.sd,3)}·(${nfix(q.z,3)}) = <span class="x">${nf(q.x,3)}</span>`);
+    if(q.x<0&&st.xs[0]>=0) add(3,`<span class="warn">valor negativo: impossível para estes dados</span>`);
+  }
+  if(level>=4) add(4,`<span class="k">registrado como sorteio nº</span> ${st.draws.length.toLocaleString('pt-BR')}`);
+  $('#calc').innerHTML=L.map(l=>`<div class="ln${l.lv>level?' pending':''}${(l.lv===level&&st.busy)?' cur':''}">${l.html}</div>`).join('');
+  // tabela de nós
+  if(st.mode==='normal'){ $('#knots').innerHTML=''; return; }
+  if(st.mode==='ogiva'){
+    const og=st.og,q=qOg(u),on=k=>level>=2&&(k===q.j-1||k===q.j)?' style="background:var(--usoft)"':'';
+    let h='<tr><th>borda</th>'+og.edges.map((_,k)=>`<th>a<sub>${k}</sub></th>`).join('')+'</tr>';
+    h+='<tr><td>x</td>'+og.edges.map((v,k)=>`<td${on(k)}>${nf(v,3)}</td>`).join('')+'</tr>';
+    h+='<tr><td>F</td>'+og.F.map((v,k)=>`<td${on(k)}>${nfix(v,3)}</td>`).join('')+'</tr>';
+    $('#knots').innerHTML=h; return;
+  }
+  const active=new Set();
+  if(st.mode==='hazen'){const q=qHazen(u); if(q.region==='low')active.add(0); else if(q.region==='high')active.add(n-1); else{active.add(q.j-1);active.add(q.j);}}
+  else active.add(qStep(u).k-1);
+  const showA=level>=2; const hl=k=>showA&&active.has(k)?' style="background:var(--usoft)"':'';
+  let h='<tr><th>k</th>'+x.map((_,k)=>`<th${showA&&active.has(k)?' style="color:var(--u)"':''}>${k+1}</th>`).join('')+'</tr>';
+  h+='<tr><td>x<sub>(k)</sub></td>'+x.map((v,k)=>`<td${hl(k)}>${nf(v,2)}</td>`).join('')+'</tr>';
+  if(st.mode==='hazen') h+='<tr><td>(k − 0,5)/n</td>'+x.map((_,k)=>`<td${hl(k)}>${nfix((k+0.5)/n,3)}</td>`).join('')+'</tr>';
+  else h+='<tr><td>k/n</td>'+x.map((_,k)=>`<td${hl(k)}>${nfix((k+1)/n,3)}</td>`).join('')+'</tr>';
+  $('#knots').innerHTML=h;
+}
+function setPhase(p){
+  st.phase=p;
+  document.querySelectorAll('#stepper li').forEach(li=>{const s=+li.dataset.s; li.classList.toggle('on',s===p); li.classList.toggle('done',p>0&&s<p);});
+}
+function updateStats(){
+  const x=st.xs,n=st.n,t=st.t; const mean=st.mu; const v=st.sd*st.sd;
+  const mm=modelMoments(st.mode); const Fm=Fmodel(t); const neg0=PltModel(0);
+  const N=st.draws.length; let sm=NaN,sv=NaN,sp=NaN,sneg=NaN;
+  if(N){sm=st.draws.reduce((a,d)=>a+d.x,0)/N; sv=st.draws.reduce((s,d)=>s+(d.x-sm)**2,0)/N; sp=st.draws.filter(d=>d.x<=t).length/N; sneg=st.draws.filter(d=>d.x<0).length/N;}
+  const tl=nf(t,2); const Fd=Fstep(t); const dneg=x.filter(y=>y<0).length/n;
+  const name={hazen:'Hazen',step:'Escada',normal:'Normal',ogiva:'Ogiva'}[st.mode];
+  const hideD=st.view==='aula'&&!st.showData, hideM=hideD&&st.mode!=='ogiva', H='<span title="Calcule você mesmo ou clique em Mostrar valores da amostra">•••</span>';
+  const dD=v=>hideD?H:v, dM=v=>hideM?H:v;
+  const ampD=x[n-1]-x[0], ampM=st.mode==='normal'?'∞':st.mode==='ogiva'?nf(st.og.edges[st.og.K]-st.og.edges[0],2):nf(ampD,2);
+  const ampS=N?nf(Math.max(...st.draws.map(d=>d.x))-Math.min(...st.draws.map(d=>d.x)),2):'—';
+  $('#show-data').hidden=st.view!=='aula'; $('#show-data').textContent=st.showData?'Ocultar valores da amostra':'Mostrar valores da amostra';
+  $('#stats').innerHTML=`<tr><th></th><th>Dados</th><th>${name}</th><th>Simulação</th></tr>
+  <tr><td>Média</td><td>${dD(nf(mean,2))}</td><td>${dM(nf(mm.mean,2))}</td><td>${nf(sm,2)}</td></tr>
+  <tr><td>Variância (÷ n)</td><td>${dD(nf(v,2))}</td><td>${dM(nf(mm.v,2))}</td><td>${nf(sv,2)}</td></tr>
+  <tr><td>Desvio-padrão</td><td>${dD(nf(Math.sqrt(v),2))}</td><td>${dM(nf(Math.sqrt(mm.v),2))}</td><td>${nf(Math.sqrt(sv),2)}</td></tr>
+  <tr><td>Amplitude</td><td>${dD(nf(ampD,2))}</td><td>${dM(ampM)}</td><td>${ampS}</td></tr>
+  <tr><td>P(X ≤ ${tl})</td><td>${nfix(Fd,3)}</td><td>${nfix(Fm,3)}</td><td>${N?nfix(sp,3):'—'}</td></tr>
+  <tr><td>P(X &gt; ${tl})</td><td>${nfix(1-Fd,3)}</td><td>${nfix(1-Fm,3)}</td><td>${N?nfix(1-sp,3):'—'}</td></tr>
+  <tr><td>P(X &lt; 0)</td><td>${nfix(dneg,3)}</td><td>${nfix(neg0,3)}</td><td>${N?nfix(sneg,3):'—'}</td></tr>`;
+  const last=st.draws.slice(-10).reverse(); const base=st.draws.length;
+  let h='<tr><th>nº</th><th>u</th><th>x</th></tr>';
+  if(!last.length) h+='<tr><td colspan="3" style="text-align:left;font-family:var(--sans);color:var(--muted)">Nenhum valor sorteado ainda.</td></tr>';
+  last.forEach((d,i)=>{h+=`<tr${i===0?' class="hi"':''}><td>${base-i}</td><td>${nfix(d.u,4)}</td><td>${nf(d.x,3)}</td></tr>`;});
+  $('#draws').innerHTML=h;
+  $('#norm-note').textContent=st.mode==='normal'?`Normal ajustada: μ = ${nf(st.mu,2)}, σ = ${nf(st.sd,2)} (desvio-padrão ÷ n).`:'';
+}
+function refreshAll(){computeDomain();renderCDF();renderHist();updateCalc(st.u,3);updateStats();setPhase(0);}
+
+/* ---------- velocidade e etapas ---------- */
+function secs(){return SPEEDS[+$('#speed').value];}
+function updateSpeedLabel(){const s=secs(); $('#speed-val').textContent=(s<1?nf(s,1):nf(s,1))+' s'; const tot=s*10; $('#eta').textContent=st.stepMode?'Modo manual: cada etapa espera você clicar em "Próxima etapa" (ou tecla →).':`Sortear 10 leva cerca de ${tot<60?nf(tot,0)+' s':nf(tot/60,1)+' min'} neste ritmo.`;}
+$('#speed').addEventListener('input',updateSpeedLabel);
+let waiter=null, sleeper=null;
+const HINT={2:'a seguir: ir até a curva',3:'a seguir: descer até x',4:'a seguir: registrar',5:'a seguir: próximo sorteio'};
+function hold(ms,nextPhase){
+  if(st.stop) return Promise.resolve();
+  if(st.stepMode){
+    return new Promise(res=>{waiter=res; $('#next').disabled=false; $('#next-hint').textContent=HINT[nextPhase]||'';})
+      .then(()=>{waiter=null; $('#next').disabled=true; $('#next-hint').textContent='';});
+  }
+  return new Promise(res=>{const id=setTimeout(()=>{sleeper=null;res();},ms); sleeper={id,res};});
+}
+function travel(u,t0,t1,ms){
+  return new Promise(res=>{
+    if(reduced||ms<=16||st.stop){st.guide={u,t:t1};updateGuide();return res();}
+    const s=performance.now();
+    const f=now=>{ if(st.stop){st.guide={u,t:t1};updateGuide();return res();}
+      const k=Math.min(1,(now-s)/ms); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+      st.guide={u,t:t0+(t1-t0)*e}; updateGuide(); if(k<1)requestAnimationFrame(f); else res();};
+    requestAnimationFrame(f);
+  });
+}
+$('#next').addEventListener('click',()=>{if(waiter)waiter();});
+document.addEventListener('keydown',e=>{if(waiter&&(e.key==='ArrowRight')&&!(e.target.matches&&e.target.matches('input,textarea'))){e.preventDefault();waiter();}});
+$('#stepmode').addEventListener('change',e=>{st.stepMode=e.target.checked; updateSpeedLabel(); if(!st.stepMode&&waiter)waiter();});
+$('#stop').addEventListener('click',()=>{st.stop=true; if(waiter)waiter(); if(sleeper){clearTimeout(sleeper.id); sleeper.res(); sleeper=null;}});
+
+function setBusy(b){st.busy=b;for(const id of ['#d1','#d10','#d1000','#add-manual','#clear','#apply','#m-hazen','#m-step','#m-normal','#m-ogiva'])$(id).disabled=b; $('#stop').disabled=!b; $('#u').disabled=b;}
+function push(u){const q=quant(u);st.draws.push({u,x:q.x});st.lastNew=q.x;}
+async function drawOne(u){
+  const T=secs()*1000;
+  st.u=u; $('#u').value=Math.min(0.999,Math.max(0.001,u));
+  setPhase(1); st.guide={u,t:0}; updateGuide(); updateCalc(u,1); sfx.tick();
+  await hold(T*0.2,2); if(st.stop)return false;
+  setPhase(2); await travel(u,0,1,T*0.2); updateCalc(u,2);
+  await hold(T*0.17,3); if(st.stop)return false;
+  setPhase(3); await travel(u,1,2,T*0.15); updateCalc(u,3); sfx.land(quant(u).x);
+  await hold(T*0.18,4); if(st.stop)return false;
+  setPhase(4); push(u); renderHist(); updateStats(); updateCalc(u,4);
+  await hold(T*0.1,5);
+  return true;
+}
+async function drawMany(k){
+  st.stop=false; setBusy(true);
+  for(let i=0;i<k;i++){ const ok=await drawOne(st.rng()); if(!ok||st.stop)break; }
+  st.guide={u:st.u,t:2}; updateGuide(); updateCalc(st.u,st.phase===4?4:3);
+  setBusy(false); setPhase(0); st.stop=false; $('#next').disabled=true; $('#next-hint').textContent='';
+}
+$('#d1').addEventListener('click',()=>drawMany(1));
+$('#d10').addEventListener('click',()=>drawMany(10));
+function sim1000(){ if(st.busy)return; const n0=st.draws.length; for(let i=0;i<1000;i++)push(st.rng()); sfx.seq(st.draws.slice(n0,n0+24).map(d=>d.x),st.dmin,st.dmax,0.055,0.07); const u=st.draws[st.draws.length-1].u; st.u=u; st.guide={u,t:2}; $('#u').value=Math.min(0.999,Math.max(0.001,u)); updateGuide(); updateCalc(u,3); renderHist(); updateStats(); }
+$('#d1000').addEventListener('click',()=>{for(let i=0;i<1000;i++)push(st.rng()); const u=st.draws[st.draws.length-1].u; st.u=u; st.guide={u,t:2}; $('#u').value=Math.min(0.999,Math.max(0.001,u)); updateGuide(); updateCalc(u,3); renderHist(); updateStats();});
+$('#add-manual').addEventListener('click',()=>{push(st.u); renderHist(); updateStats(); updateCalc(st.u,4);});
+function resetDraws(){st.draws=[]; st.lastNew=null; st.rng=mulberry32(+$('#seed').value||0);}
+$('#clear').addEventListener('click',()=>{resetDraws(); renderHist(); updateStats(); updateCalc(st.u,3);});
+$('#seed').addEventListener('change',()=>{resetDraws(); renderHist(); updateStats();});
+$('#u').addEventListener('input',e=>{if(st.busy)return; st.u=+e.target.value; st.guide={u:st.u,t:2}; updateGuide(); updateCalc(st.u,3);});
+$('#bins').addEventListener('input',e=>{st.bins=+e.target.value; $('#bins-val').textContent=st.bins; renderHist();});
+$('#thr').addEventListener('input',e=>{const v=parseFloat(e.target.value); if(Number.isFinite(v)){st.t=v; updateStats();}});
+$('#show-other').addEventListener('change',e=>{st.showOther=e.target.checked; renderCDF();});
+function setMode(m){
+  if(st.busy)return; st.mode=m;
+  for(const k of ['hazen','step','normal','ogiva']) $('#m-'+k).setAttribute('aria-pressed',k===m);
+  resetDraws(); st.guide={u:st.u,t:2}; refreshAll();
+}
+$('#m-hazen').addEventListener('click',()=>setMode('hazen'));
+$('#m-step').addEventListener('click',()=>setMode('step'));
+$('#m-normal').addEventListener('click',()=>setMode('normal'));
+$('#m-ogiva').addEventListener('click',()=>setMode('ogiva'));
+
+$('#copy').addEventListener('click',()=>{
+  const csv='u,x\n'+st.draws.map(d=>`${d.u.toFixed(6)},${+d.x.toFixed(6)}`).join('\n');
+  const msg=$('#copy-msg'), fb=$('#copy-fallback');
+  if(!st.draws.length){msg.hidden=false; msg.textContent='Sorteie alguns valores antes de copiar.'; return;}
+  const fallback=()=>{fb.hidden=false; fb.value=csv; fb.focus(); fb.select(); msg.hidden=false; msg.textContent='Copie o texto selecionado abaixo (Ctrl+C).';};
+  try{ navigator.clipboard.writeText(csv).then(()=>{fb.hidden=true; msg.hidden=false; msg.textContent=`${st.draws.length.toLocaleString('pt-BR')} valores copiados como CSV (colunas u, x).`;}, fallback); }catch(e){fallback();}
+});
+
+/* ---------- dados ---------- */
+function parseData(txt){return txt.split(/[\s,;]+/).filter(Boolean).map(Number);}
+function loadPreset(p){
+  st.preset=p.id;
+  $('#data').value=p.data.join(', '); st.t=p.t; $('#thr').value=p.t;
+  document.querySelectorAll('#presets .chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.id===p.id));
+  apply();
+}
+function apply(){
+  if(st.busy)return;
+  const arr=parseData($('#data').value); const err=$('#data-err');
+  if(arr.length<2||arr.some(v=>!Number.isFinite(v))){err.hidden=false; err.textContent='Informe pelo menos dois números válidos. Use ponto como separador decimal (ex.: 12.5).'; return;}
+  err.hidden=true; setData(arr); resetDraws(); st.guide={u:st.u,t:2}; refreshAll(); builderReset();
+}
+$('#apply').addEventListener('click',()=>{st.preset=null; document.querySelectorAll('#presets .chip').forEach(c=>c.setAttribute('aria-pressed','false')); apply();});
+const pc=$('#presets');
+for(const p of PRESETS){const b=document.createElement('button'); b.className='chip'; b.textContent=p.label; b.dataset.id=p.id; b.setAttribute('aria-pressed','false'); b.addEventListener('click',()=>loadPreset(p)); pc.appendChild(b);}
+
+/* ---------- construção da acumulada ---------- */
+const bst={method:'ogiva',step:0,tab:'show',trap:false,hazen:false,playing:false,anim:1,checked:false,reveal:false};
+const iv=(a,b,last)=>`[${nf(a,3)} ; ${nf(b,3)}${last?']':')'}`;
+function bMax(){return bst.method==='hazen'?st.n+1:st.og.K+1;}
+function builderReset(){
+  bst.step=0; bst.anim=1; bst.checked=false; bst.reveal=false; stopPlay();
+  $('#og-h').value=st.ogH; $('#og-a0').value=st.ogA0;
+  renderBuilder(); renderBTable(); renderCaption();
+}
+function renderBuilder(){
+  if(bst.method==='hazen')return renderBuilderHz();
+  const og=st.og, svg=$('#bsvg'); if(!og)return; svg.textContent='';
+  const W=Math.max(300,svg.parentNode.clientWidth);
+  const L=44,R=14,T=22,Ht=150,gap=44,Hb=Math.round(Math.min(260,Math.max(200,W*0.34))),B=30;
+  const y0T=T+Ht, topB=y0T+gap, y0B=topB+Hb, H=y0B+B;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const h=og.h, lo=og.edges[0]-0.5*h, hi=og.edges[og.K]+0.5*h, n=st.n;
+  const sx=v=>L+(v-lo)/(hi-lo)*(W-L-R);
+  const pmax=Math.max(...og.p); const ytMax=Math.max(pmax*1.3,1.6/n);
+  const syT=v=>y0T-v/ytMax*Ht, syB=v=>y0B-v*Hb;
+  const g=S('g',null,svg);
+  // grades
+  for(const v of niceTicks(0,ytMax,3)){S('line',{x1:L,x2:W-R,y1:syT(v),y2:syT(v),class:'gridline'},g);const t=S('text',{x:L-6,y:syT(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,2);}
+  for(const v of [0,0.25,0.5,0.75,1]){S('line',{x1:L,x2:W-R,y1:syB(v),y2:syB(v),class:'gridline'},g);const t=S('text',{x:L-6,y:syB(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,2);}
+  const every=Math.max(1,Math.ceil(og.K*62/(W-L-R)));
+  og.edges.forEach((e,k)=>{S('line',{x1:sx(e),x2:sx(e),y1:T,y2:y0B,class:'edge'},g); if(k%every===0){const t=S('text',{x:sx(e),y:y0B+16,'text-anchor':'middle'},g);t.textContent=nf(e,3);}});
+  S('line',{x1:L,x2:W-R,y1:y0T,y2:y0T,class:'axis'},g); S('line',{x1:L,x2:W-R,y1:y0B,y2:y0B,class:'axis'},g);
+  S('line',{x1:L,x2:L,y1:T,y2:y0T,class:'axis'},g); S('line',{x1:L,x2:L,y1:topB,y2:y0B,class:'axis'},g);
+  const pt1=S('text',{x:L+4,y:T-8,class:'t-panel'},g); pt1.textContent='Histograma da amostra · altura = f/n';
+  const pt2=S('text',{x:L+4,y:topB-8,class:'t-panel'},g); pt2.textContent='Acumulada · F no fim de cada classe';
+  const show=bst.tab==='show'; const step=show?bst.step:0; const e=bst.anim<.5?2*bst.anim*bst.anim:1-Math.pow(-2*bst.anim+2,2)/2;
+  // histograma com tijolos
+  for(let j=0;j<og.K;j++){
+    const x1=sx(og.edges[j])+1.5, w=Math.max(1,sx(og.edges[j+1])-sx(og.edges[j])-3), c=og.counts[j];
+    const cls=show&&j<step-1?'brick done':show&&j===step-1?'brick cur':'brick';
+    for(let i=0;i<c;i++){
+      const yt=syT((i+1)/n), hh=syT(i/n)-syT((i+1)/n);
+      S('rect',{x:x1,y:yt,width:w,height:hh,class:cls},g);
+      if(hh>=13&&w>=24){const t=S('text',{x:x1+w/2,y:yt+hh/2+3.5,'text-anchor':'middle',class:'t-brick'},g);t.textContent=nf(og.members[j][i],2);}
+    }
+    const tp=S('text',{x:x1+w/2,y:syT(og.p[j])-5,'text-anchor':'middle',class:'t-p'},g); tp.textContent=c?nfix(og.p[j],2):'0';
+  }
+  // acumulada: colunas empilhadas
+  if(show){
+    for(let j=0;j<Math.min(step,og.K);j++){
+      const x1=sx(og.edges[j])+1.5, w=Math.max(1,sx(og.edges[j+1])-sx(og.edges[j])-3), c=og.counts[j], cur=j===step-1;
+      if(og.F[j]>0){S('rect',{x:x1,y:syB(og.F[j]),width:w,height:syB(0)-syB(og.F[j]),class:'carry'},g);
+        if(cur&&w>=34&&syB(0)-syB(og.F[j])>16){const t=S('text',{x:x1+w/2,y:syB(og.F[j]/2)+4,'text-anchor':'middle',class:'t-carry'},g);t.textContent=nfix(og.F[j],2);}}
+      for(let i=0;i<c;i++){
+        const yF=syB(og.F[j]+(i+1)/n), hF=Hb/n, yS=syT((i+1)/n), hS=syT(i/n)-syT((i+1)/n);
+        const k=cur?e:1; const yy=yS+(yF-yS)*k, hh=hS+(hF-hS)*k;
+        S('rect',{x:x1,y:yy,width:w,height:hh,class:cur?'brick cur':'brick'},g);
+        if(hh>=13&&w>=24){const t=S('text',{x:x1+w/2,y:yy+hh/2+3.5,'text-anchor':'middle',class:'t-brick'},g);t.textContent=nf(og.members[j][i],2);}
+      }
+    }
+    // ogiva
+    const last=Math.min(step,og.K)-(bst.anim<1?1:0);
+    if(step>=1){
+      let d=`M${sx(og.edges[0])},${syB(0)}`; for(let j=1;j<=last;j++) d+=` L${sx(og.edges[j])},${syB(og.F[j])}`;
+      S('path',{d,class:'ogive'},g);
+      if(step>og.K){S('line',{x1:sx(lo),y1:syB(0),x2:sx(og.edges[0]),y2:syB(0),class:'ogive ext'},g);S('line',{x1:sx(og.edges[og.K]),y1:syB(1),x2:sx(hi),y2:syB(1),class:'ogive ext'},g);}
+      for(let j=0;j<=last;j++){const cur=j===step&&step<=og.K; S('circle',{cx:sx(og.edges[j]),cy:syB(og.F[j]),r:cur?5:3.6,class:'opt'+(cur?' cur':'')},g);
+        if(cur){const right=sx(og.edges[j])>W*0.75;const t=S('text',{x:sx(og.edges[j])+(right?-8:8),y:syB(og.F[j])-8,'text-anchor':right?'end':'start',class:'t-u halo'},g);t.textContent=`(${nf(og.edges[j],3)} ; ${nfix(og.F[j],2)})`;}}
+    }
+    if(bst.trap&&last>=1){
+      let d=''; for(let j=1;j<=last;j++){const m=(og.edges[j-1]+og.edges[j])/2; d+=(j>1?' L':'M')+sx(m)+','+syB(og.F[j]); S('circle',{cx:sx(m),cy:syB(og.F[j]),r:3.4,class:'tpt'},g);}
+      S('path',{d,class:'trap'},g);
+    }
+  } else if(bst.checked||bst.reveal){
+    // prática: pontos do aluno
+    const pos=(document.querySelector('input[name=pos]:checked')||{}).value||'R';
+    const pts=[]; for(let j=0;j<og.K;j++){
+      const v=bst.reveal?og.F[j+1]:parseFrac($('#pf-'+j).value); if(!Number.isFinite(v))continue;
+      const xx=pos==='L'?og.edges[j]:pos==='C'?(og.edges[j]+og.edges[j+1])/2:og.edges[j+1];
+      pts.push({x:xx,y:v,ok:Math.abs(v-og.F[j+1])<0.006});
+    }
+    if(pts.length){
+      const all=(pos==='R'?[{x:og.edges[0],y:0,ok:true}]:[]).concat(pts);
+      S('path',{d:all.map((p,i)=>(i?'L':'M')+sx(p.x)+','+syB(Math.max(0,Math.min(1.05,p.y)))).join(' '),class:'sline'},g);
+      for(const p of pts) S('circle',{cx:sx(p.x),cy:syB(Math.max(0,Math.min(1.05,p.y))),r:4.5,class:'spt '+(p.ok&&pos==='R'?'ok':'bad')},g);
+    }
+  }
+  if(bst.hazen){
+    const x=st.xs; let d=`M${sx(Math.max(lo,Math.min(hi,x[0])))},${syB(0)}`;
+    for(let k=0;k<n;k++) d+=` L${sx(x[k])},${syB((k+0.5)/n)}`; d+=` L${sx(x[n-1])},${syB(1)}`;
+    S('path',{d,class:'c-hazen c-dim'},g);
+  }
+}
+function renderCaption(){
+  if(bst.method==='hazen')return renderCaptionHz();
+  const og=st.og,s=bst.step,n=st.n,c=$('#bcap');
+  if(s===0){c.innerHTML=`<p>O histograma tem <b>${og.K}</b> classes de largura h = ${nf(og.h,3)}. Cada tijolinho é uma das n = ${n} observações e tem altura 1/n = ${nfix(1/n,3)}, então a altura da barra é a frequência relativa f/n.</p><p>Clique em <b>Próximo</b> para descer os tijolos de cada classe e empilhá-los sobre o que já foi acumulado.</p>`;return;}
+  if(s>og.K){c.innerHTML=`<p><b>Ogiva completa.</b> A acumulada termina em F = 1 porque todas as ${n} observações foram empilhadas.</p><p>Ligar os pontos por retas equivale a supor que as observações se espalham uniformemente dentro de cada classe. A inclinação de cada trecho, (f/n)/h, é a altura da barra dividida pela largura: é a densidade.</p><p>Com o botão abaixo, a inversa desta ogiva passa a ser usada na simulação: x = a + (u − F(a))/(f/n)·h.</p>`;return;}
+  const j=s-1,a=og.edges[j],b=og.edges[j+1],cnt=og.counts[j],last=j===og.K-1;
+  const vals=og.members[j].map(v=>nf(v,3)).join(', ');
+  let html=`<p><b>Classe ${s}</b> ${iv(a,b,last)}: ${cnt?`${cnt} observação${cnt>1?'ões':''} (${vals})`:'nenhuma observação'}.</p>`;
+  html+=`<p class="mono">f/n = ${cnt}/${n} = ${nfix(og.p[j],3)}<br>F(${nf(b,3)}) = F(${nf(a,3)}) + f/n = ${nfix(og.F[j],3)} + ${nfix(og.p[j],3)} = <b>${nfix(og.F[j+1],3)}</b></p>`;
+  html+=cnt?`<p>O ponto vai na <b>borda direita</b>, (${nf(b,3)} ; ${nfix(og.F[j+1],2)}): só no fim da classe ${cnt>1?`todas as ${cnt} observações já foram contadas`:'a observação dela já foi contada'}.</p>`
+           :`<p>Classe vazia: F não muda e a ogiva fica <b>horizontal</b> neste trecho. A inversa nunca sorteia valores aqui.</p>`;
+  if(bst.trap) html+=`<p style="color:var(--u)">Armadilha: marcar F no centro (${nf((a+b)/2,3)}) adianta a curva em h/2 = ${nf(og.h/2,3)} e desloca toda a distribuição para a esquerda.</p>`;
+  c.innerHTML=html;
+}
+function parseFrac(s){if(s==null)return NaN;s=String(s).trim().replace(',','.');if(!s)return NaN;if(s.includes('/')){const [a,b]=s.split('/').map(Number);return a/b;}return Number(s);}
+function renderBTable(){
+  if(bst.method==='hazen')return renderBTableHz();
+  const og=st.og,n=st.n,show=bst.tab==='show',s=bst.step;
+  let h='<tr><th>Classe</th><th>f</th><th>f/n</th><th>F no fim</th><th>'+(show?'Ponto':'')+'</th></tr>';
+  for(let j=0;j<og.K;j++){
+    const vis=!show||j<s, cur=show&&j===s-1&&s<=og.K;
+    h+=`<tr${cur?' class="cur"':''}><td>${iv(og.edges[j],og.edges[j+1],j===og.K-1)}</td><td>${og.counts[j]}</td><td>${nfix(og.p[j],3)}</td>`;
+    if(show) h+=vis?`<td>${nfix(og.F[j+1],3)}</td><td>(${nf(og.edges[j+1],3)} ; ${nfix(og.F[j+1],2)})</td>`:`<td class="q">?</td><td class="q">?</td>`;
+    else h+=`<td><input id="pf-${j}" inputmode="decimal" aria-label="F no fim da classe ${j+1}"></td><td id="pk-${j}"></td>`;
+    h+='</tr>';
+  }
+  $('#btable').innerHTML=h;
+  if(!show) for(let j=0;j<og.K;j++) $('#pf-'+j).addEventListener('input',()=>{if(bst.checked){bst.checked=false;$('#pk-'+j).textContent='';renderBuilder();}});
+  $('#b-prev').disabled=s<=0; $('#b-next').disabled=s>=bMax();
+}
+function animStep(){
+  return new Promise(res=>{
+    if(reduced){bst.anim=1;renderBuilder();return res();}
+    const t0=performance.now(), D=900;
+    const f=now=>{bst.anim=Math.min(1,(now-t0)/D); renderBuilder(); if(bst.anim<1)requestAnimationFrame(f); else res();};
+    requestAnimationFrame(f);
+  });
+}
+async function bNext(){ if(bst.step>=bMax())return; bst.step++; renderBTable(); renderCaption(); const lim=bMax()-1; if(bst.step<=lim){bst.anim=0; await animStep(); const c=bst.method==='hazen'?1:st.og.counts[bst.step-1]; if(c)sfx.brick(c);} else {bst.anim=1; renderBuilder();} }
+function bPrev(){ if(bst.step<=0)return; bst.step--; bst.anim=1; renderBuilder(); renderBTable(); renderCaption(); }
+/* ---------- construção pelo método de Hazen ---------- */
+const isHz=()=>bst.method==='hazen';
+function hzPractice(){ // pergunta de posição adaptada
+  const L=$('#pos-L'),C=$('#pos-C'),Rr=$('#pos-R'),q=$('#pos-q'),f=$('#pf-lbl');
+  if(isHz()){q.textContent='1. Em que altura você marca o ponto de Hazen de cada observação?';L.textContent='Na base do tijolo, (k − 1)/n';C.textContent='No meio do tijolo, (k − 0,5)/n';Rr.textContent='No topo do tijolo, k/n';f.textContent='2. Preencha a altura do ponto de cada observação (aceita 0,35 ou 3,5/10) e confira.';}
+  else {q.textContent='1. Em que posição x você marca o ponto (x ; F) de cada classe?';L.textContent='Na borda esquerda a da classe';C.textContent='No centro m da classe';Rr.textContent='Na borda direita b da classe';f.textContent='2. Preencha a coluna F (aceita 0,4 ou 4/10) e confira.';}
+}
+function setBMethod(m){
+  stopPlay(); bst.method=m; $('#bm-og').setAttribute('aria-pressed',m==='ogiva'); $('#bm-hz').setAttribute('aria-pressed',m==='hazen');
+  $('#og-fold').hidden=m==='hazen'; $('#b-trap').parentNode.classList.toggle('hzhide',m==='hazen'); $('#b-hazen').parentNode.classList.toggle('hzhide',m==='hazen');
+  $('#b-use').textContent=m==='hazen'?'Usar esta rampa de Hazen na simulação ↑':'Usar esta ogiva na simulação ↑';
+  document.querySelectorAll('input[name=pos]').forEach(r=>r.checked=false);
+  hzPractice(); bst.step=0; bst.anim=1; bst.checked=false; bst.reveal=false; renderBuilder(); renderBTable(); renderCaption();
+  $('#p-fb').textContent=m==='hazen'?'Preencha a altura do ponto de cada observação e escolha onde marcá-lo.':'Preencha a acumulada de cada classe e escolha onde marcar o ponto.';
+}
+$('#bm-og').addEventListener('click',()=>setBMethod('ogiva'));
+$('#bm-hz').addEventListener('click',()=>setBMethod('hazen'));
+function renderBuilderHz(){
+  const svg=$('#bsvg'); svg.textContent=''; const x=st.xs,n=st.n;
+  const W=Math.max(300,svg.parentNode.clientWidth);
+  const L=44,R=14,T=22,Ht=150,gap=44,Hb=Math.round(Math.min(260,Math.max(200,W*0.34))),B=30;
+  const y0T=T+Ht, topB=y0T+gap, y0B=topB+Hb, H=y0B+B; svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const rg=(x[n-1]-x[0])||1, lo=x[0]-0.08*rg, hi=x[n-1]+0.08*rg, sx=v=>L+(v-lo)/(hi-lo)*(W-L-R);
+  const uniq=[...new Set(x)]; let minGap=Infinity; for(let i=1;i<uniq.length;i++)minGap=Math.min(minGap,sx(uniq[i])-sx(uniq[i-1]));
+  const bw=Math.max(6,Math.min(26,0.8*minGap)); const cnt={}; x.forEach(v=>cnt[v]=(cnt[v]||0)+1);
+  const ytMax=Math.max(...Object.values(cnt))/n*1.3; const syT=v=>y0T-v/ytMax*Ht, syB=v=>y0B-v*Hb;
+  const g=S('g',null,svg);
+  for(const v of niceTicks(0,ytMax,3)){S('line',{x1:L,x2:W-R,y1:syT(v),y2:syT(v),class:'gridline'},g);const t=S('text',{x:L-6,y:syT(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,2);}
+  for(const v of [0,0.25,0.5,0.75,1]){S('line',{x1:L,x2:W-R,y1:syB(v),y2:syB(v),class:'gridline'},g);const t=S('text',{x:L-6,y:syB(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,2);}
+  const every=Math.max(1,Math.ceil(uniq.length*40/(W-L-R)));
+  uniq.forEach((v,k)=>{S('line',{x1:sx(v),x2:sx(v),y1:T,y2:y0B,class:'edge'},g); if(k%every===0){const t=S('text',{x:sx(v),y:y0B+16,'text-anchor':'middle'},g);t.textContent=nf(v,2);}});
+  S('line',{x1:L,x2:W-R,y1:y0T,y2:y0T,class:'axis'},g); S('line',{x1:L,x2:W-R,y1:y0B,y2:y0B,class:'axis'},g);
+  S('line',{x1:L,x2:L,y1:T,y2:y0T,class:'axis'},g); S('line',{x1:L,x2:L,y1:topB,y2:y0B,class:'axis'},g);
+  const pt1=S('text',{x:L+4,y:T-8,class:'t-panel'},g); pt1.textContent='Um tijolo por observação · altura 1/n';
+  const pt2=S('text',{x:L+4,y:topB-8,class:'t-panel'},g); pt2.textContent='Acumulada · ponto de Hazen no meio de cada tijolo';
+  const show=bst.tab==='show', step=show?bst.step:0, e=bst.anim<.5?2*bst.anim*bst.anim:1-Math.pow(-2*bst.anim+2,2)/2;
+  // posição de cada observação ordenada na pilha de cima
+  const seen={}, topPos=x.map(v=>{const i=seen[v]||0; seen[v]=i+1; return i;});
+  x.forEach((v,k)=>{const cls=show&&k<step-1?'brick done':show&&k===step-1?'brick cur':'brick'; const yt=syT((topPos[k]+1)/n), hh=syT(topPos[k]/n)-yt;
+    S('rect',{x:sx(v)-bw/2,y:yt,width:bw,height:hh,class:cls},g);});
+  uniq.forEach(v=>{const t=S('text',{x:sx(v),y:syT(cnt[v]/n)-5,'text-anchor':'middle',class:'t-p'},g); t.textContent=nfix(cnt[v]/n,2);});
+  if(show){
+    const first={}; x.forEach((v,k)=>{if(first[v]==null)first[v]=k;});
+    const doneVals=[...new Set(x.slice(0,Math.min(step,n)))];
+    doneVals.forEach(v=>{const f=first[v]/n; if(f>0)S('rect',{x:sx(v)-bw/2,y:syB(f),width:bw,height:syB(0)-syB(f),class:'carry'},g);});
+    for(let k=0;k<Math.min(step,n);k++){
+      const cur=k===step-1, yF=syB((k+1)/n), hF=Hb/n, yS=syT((topPos[k]+1)/n), hS=syT(topPos[k]/n)-yS, kk=cur?e:1;
+      S('rect',{x:sx(x[k])-bw/2,y:yS+(yF-yS)*kk,width:bw,height:hS+(hF-hS)*kk,class:cur?'brick cur':'brick'},g);
+    }
+    const last=Math.min(step,n)-(bst.anim<1?1:0);
+    if(last>=1){
+      let d=`M${sx(x[0])},${syB(0)}`; for(let k=0;k<last;k++) d+=` L${sx(x[k])},${syB((k+0.5)/n)}`;
+      if(step>n){d+=` L${sx(x[n-1])},${syB(1)}`;} S('path',{d,class:'ogive'},g);
+      if(step>n){S('line',{x1:sx(lo),y1:syB(0),x2:sx(x[0]),y2:syB(0),class:'ogive ext'},g);S('line',{x1:sx(x[n-1]),y1:syB(1),x2:sx(hi),y2:syB(1),class:'ogive ext'},g);}
+      for(let k=0;k<last;k++){const cur=k===step-1; S('circle',{cx:sx(x[k]),cy:syB((k+0.5)/n),r:cur?5:3.6,class:'opt'+(cur?' cur':'')},g);
+        if(cur){const right=sx(x[k])>W*0.75;const t=S('text',{x:sx(x[k])+(right?-10:10),y:syB((k+0.5)/n)+4,'text-anchor':right?'end':'start',class:'t-u halo'},g);t.textContent=`(${nf(x[k],3)} ; ${nfix((k+0.5)/n,3)})`;}}
+    }
+  } else if(bst.checked||bst.reveal){
+    const pos=(document.querySelector('input[name=pos]:checked')||{}).value||'C'; const pts=[];
+    for(let k=0;k<n;k++){const v=bst.reveal?(k+0.5)/n:parseFrac($('#pf-'+k).value); if(!Number.isFinite(v))continue; pts.push({x:x[k],y:v,ok:Math.abs(v-(k+0.5)/n)<0.006});}
+    if(pts.length){S('path',{d:pts.map((p,i)=>(i?'L':'M')+sx(p.x)+','+syB(Math.max(0,Math.min(1.05,p.y)))).join(' '),class:'sline'},g);
+      for(const p of pts)S('circle',{cx:sx(p.x),cy:syB(Math.max(0,Math.min(1.05,p.y))),r:4.5,class:'spt '+(p.ok&&pos==='C'?'ok':'bad')},g);}
+  }
+}
+function renderCaptionHz(){
+  const s=bst.step,n=st.n,x=st.xs,c=$('#bcap');
+  if(s===0){c.innerHTML=`<p>No método de Hazen, cada observação é a sua própria "classe". Ordenamos os n = ${n} dados e empilhamos um tijolo de altura 1/n = ${nfix(1/n,3)} por vez, do menor para o maior valor.</p><p>Não há largura de classe para escolher: o histograma de cima tem um tijolo em cada valor observado. Clique em <b>Próximo</b>.</p>`;return;}
+  if(s>n){c.innerHTML=`<p><b>Rampa de Hazen completa.</b> Entre dois pontos vizinhos a curva é uma reta; é por ela que a inversa sorteia valores intermediários.</p><p>Nas pontas sobram meias massas de 0,5/n = ${nfix(0.5/n,3)}: abaixo do primeiro ponto a curva sobe na vertical em x = ${nf(x[0],3)}, e acima do último, em x = ${nf(x[n-1],3)}. Por isso o simulador nunca sai do intervalo observado.</p><p>Diferente da ogiva, a média desta distribuição é exatamente a média da amostra.</p>`;return;}
+  const k=s,v=x[k-1],tie=k>1&&x[k-2]===v;
+  let h=`<p><b>Observação ${k}</b> de ${n}: x<sub>(${k})</sub> = ${nf(v,3)}.</p><p class="mono">o tijolo leva F de (k − 1)/n = ${nfix((k-1)/n,3)} a k/n = ${nfix(k/n,3)}<br>ponto de Hazen: (k − 0,5)/n = (${k} − 0,5)/${n} = <b>${nfix((k-0.5)/n,3)}</b></p>`;
+  h+=`<p>O ponto vai no <b>meio do tijolo</b>, (${nf(v,3)} ; ${nfix((k-0.5)/n,3)}). Aqui o meio é correto: toda a massa desta observação está num único valor de x, sem largura para "adiantar" a curva.</p>`;
+  if(tie) h+=`<p>Empate com a observação anterior: o novo ponto fica na mesma vertical, e a rampa sobe em pé neste trecho (massa pontual).</p>`;
+  c.innerHTML=h;
+}
+function renderBTableHz(){
+  const n=st.n,x=st.xs,show=bst.tab==='show',s=bst.step;
+  let h='<tr><th>k</th><th>x<sub>(k)</sub></th><th>F antes</th><th>F depois</th><th>'+(show?'Ponto (meio)':'Altura (k − 0,5)/n')+'</th>'+(show?'':'<th></th>')+'</tr>';
+  for(let k=0;k<n;k++){
+    const vis=!show||k<s, cur=show&&k===s-1;
+    h+=`<tr${cur?' class="cur"':''}><td>${k+1}</td><td>${nf(x[k],3)}</td><td>${nfix(k/n,3)}</td><td>${nfix((k+1)/n,3)}</td>`;
+    if(show) h+=vis?`<td>(${nf(x[k],3)} ; ${nfix((k+0.5)/n,3)})</td>`:'<td class="q">?</td>';
+    else h+=`<td><input id="pf-${k}" inputmode="decimal" aria-label="Altura do ponto da observação ${k+1}"></td><td id="pk-${k}"></td>`;
+    h+='</tr>';
+  }
+  $('#btable').innerHTML=h;
+  if(!show) for(let k=0;k<n;k++) $('#pf-'+k).addEventListener('input',()=>{if(bst.checked){bst.checked=false;$('#pk-'+k).textContent='';renderBuilder();}});
+  $('#b-prev').disabled=s<=0; $('#b-next').disabled=s>=bMax();
+}
+function checkPracticeHz(){
+  const n=st.n; let ok=0,filled=0,firstBad=-1;
+  for(let k=0;k<n;k++){const v=parseFrac($('#pf-'+k).value),cell=$('#pk-'+k); if(!Number.isFinite(v)){cell.innerHTML='';continue;} filled++;
+    if(Math.abs(v-(k+0.5)/n)<0.006){ok++;cell.innerHTML='<span class="ok">✓</span>';} else {cell.innerHTML='<span class="bad">✗</span>'; if(firstBad<0)firstBad=k;}}
+  const pos=(document.querySelector('input[name=pos]:checked')||{}).value;
+  bst.checked=true; bst.reveal=false; renderBuilder();
+  const msgs=[`${ok} de ${n} alturas corretas.`];
+  if(filled<n) msgs.push(`Faltam ${n-filled}.`);
+  if(firstBad>=0) msgs.push(`Revise a observação ${firstBad+1}: a altura é (k − 0,5)/n com k = ${firstBad+1} e n = ${n}.`);
+  if(!pos) msgs.push('Escolha também onde marcar o ponto (pergunta 1).');
+  else if(pos==='C') msgs.push('Altura correta: o meio do tijolo, (k − 0,5)/n.');
+  else if(pos==='R') msgs.push('No topo do tijolo (k/n) você obtém a escada empírica, não a rampa de Hazen: a última observação ficaria em F = 1 e a curva seria deslocada para cima.');
+  else msgs.push('Na base do tijolo ((k − 1)/n), a primeira observação ficaria em F = 0 e a curva seria deslocada para baixo.');
+  if(ok===n&&pos==='C') msgs.unshift('Tudo certo!');
+  $('#p-fb').textContent=msgs.join(' ');
+}
+let playTimer=null;
+function stopPlay(){bst.playing=false; clearTimeout(playTimer); $('#b-play').textContent='Reproduzir';}
+async function playLoop(){ if(!bst.playing)return; if(bst.step>=bMax()){stopPlay();return;} await bNext(); if(bst.step>=bMax()){stopPlay();return;} playTimer=setTimeout(playLoop,secs()*350+800); }
+$('#b-next').addEventListener('click',()=>{stopPlay(); bNext();});
+$('#b-prev').addEventListener('click',()=>{stopPlay(); bPrev();});
+$('#b-reset').addEventListener('click',()=>{stopPlay(); bst.step=0; bst.anim=1; renderBuilder(); renderBTable(); renderCaption();});
+$('#b-play').addEventListener('click',()=>{ if(bst.playing){stopPlay();return;} if(bst.step>=bMax()){bst.step=0;} bst.playing=true; $('#b-play').textContent='Pausar'; playLoop(); });
+$('#b-trap').addEventListener('change',e=>{bst.trap=e.target.checked; renderBuilder(); renderCaption();});
+$('#b-hazen').addEventListener('change',e=>{bst.hazen=e.target.checked; renderBuilder();});
+function setTab(t){
+  stopPlay(); bst.tab=t; $('#t-show').setAttribute('aria-pressed',t==='show'); $('#t-prac').setAttribute('aria-pressed',t==='prac');
+  $('#b-showctl').hidden=t!=='show'; $('#b-pracctl').hidden=t!=='prac'; $('#b-trap').parentNode.hidden=t!=='show';
+  bst.checked=false; bst.reveal=false; renderBTable(); renderBuilder(); $('#p-fb').textContent=bst.method==='hazen'?'Preencha a altura do ponto de cada observação e escolha onde marcá-lo.':'Preencha a acumulada de cada classe e escolha onde marcar o ponto.';
+}
+$('#t-show').addEventListener('click',()=>setTab('show'));
+$('#t-prac').addEventListener('click',()=>setTab('prac'));
+function checkPractice(){
+  if(bst.method==='hazen')return checkPracticeHz();
+  const og=st.og; let ok=0,filled=0,firstBad=-1;
+  for(let j=0;j<og.K;j++){
+    const v=parseFrac($('#pf-'+j).value), cell=$('#pk-'+j);
+    if(!Number.isFinite(v)){cell.innerHTML='';continue;} filled++;
+    if(Math.abs(v-og.F[j+1])<0.006){ok++;cell.innerHTML='<span class="ok">✓</span>';} else {cell.innerHTML='<span class="bad">✗</span>'; if(firstBad<0)firstBad=j;}
+  }
+  const pos=(document.querySelector('input[name=pos]:checked')||{}).value;
+  bst.checked=true; bst.reveal=false; renderBuilder();
+  const msgs=[`${ok} de ${og.K} valores de F corretos.`];
+  if(filled<og.K) msgs.push(`Faltam ${og.K-filled} classe(s).`);
+  if(firstBad>=0) msgs.push(`Revise a classe ${firstBad+1}: some a frequência relativa dela ao F da classe anterior.`);
+  if(!pos) msgs.push('Escolha também onde marcar o ponto (pergunta 1).');
+  else if(pos==='R') msgs.push('Posição correta: o F só está completo na borda direita da classe.');
+  else if(pos==='C') msgs.push('No centro, você diria que metade da classe já contém todas as suas observações. A curva fica adiantada em h/2 (veja os pontos em magenta).');
+  else msgs.push('Na borda esquerda, a curva fica adiantada uma classe inteira: F já atingiria o valor final antes de a classe começar.');
+  if(ok===og.K&&pos==='R') msgs.unshift('Tudo certo!');
+  $('#p-fb').textContent=msgs.join(' ');
+}
+$('#p-check').addEventListener('click',checkPractice);
+$('#p-hint').addEventListener('click',()=>{ if(bst.method==='hazen'){$('#p-fb').textContent=`Dica: com n = ${st.n}, cada tijolo tem altura 1/n = ${nfix(1/st.n,3)}. A observação k vai de (k − 1)/n até k/n; o ponto fica no meio. Exemplo: k = 1 → (1 − 0,5)/${st.n} = ${nfix(0.5/st.n,3)}.`;return;} const og=st.og; $('#p-fb').textContent=`Dica: F começa em 0 na borda a₀ = ${nf(og.edges[0],3)}. Para cada classe, F no fim = F anterior + f/n. Exemplo: F no fim da classe 1 = 0 + ${og.counts[0]}/${st.n} = ${nfix(og.F[1],2)}. A última deve dar 1.`;});
+$('#p-answer').addEventListener('click',()=>{ if(bst.method==='hazen'){for(let k=0;k<st.n;k++)$('#pf-'+k).value=nfix((k+0.5)/st.n,3); document.querySelector('input[name=pos][value=C]').checked=true; checkPractice(); return;} const og=st.og; for(let j=0;j<og.K;j++)$('#pf-'+j).value=nfix(og.F[j+1],2); const r=document.querySelector('input[name=pos][value=R]'); r.checked=true; checkPractice();});
+$('#p-clear').addEventListener('click',()=>{renderBTable(); bst.checked=false; bst.reveal=false; document.querySelectorAll('input[name=pos]').forEach(r=>r.checked=false); renderBuilder(); $('#p-fb').textContent='Preencha a acumulada de cada classe e escolha onde marcar o ponto.';});
+document.querySelectorAll('input[name=pos]').forEach(r=>r.addEventListener('change',()=>{if(bst.checked)renderBuilder();}));
+function applyClasses(h,a0){
+  const err=$('#og-err');
+  if(!(h>0)){err.hidden=false;err.textContent='A largura h deve ser positiva.';return;}
+  if(!(a0<=st.xs[0])){err.hidden=false;err.textContent=`O início a₀ precisa ser menor ou igual ao menor dado (${nf(st.xs[0],3)}).`;return;}
+  if((st.xs[st.n-1]-a0)/h>60){err.hidden=false;err.textContent='Isso geraria mais de 60 classes. Aumente h.';return;}
+  err.hidden=true; st.ogH=h; st.ogA0=a0; buildOgive(); builderReset();
+  if(st.mode==='ogiva'){resetDraws(); refreshAll();} else if(st.showOther) renderCDF();
+}
+$('#og-apply').addEventListener('click',()=>applyClasses(parseFloat($('#og-h').value),parseFloat($('#og-a0').value)));
+$('#og-auto').addEventListener('click',()=>{autoClasses(); applyClasses(st.ogH,st.ogA0);});
+$('#b-use').addEventListener('click',()=>{ if(st.busy)return; setMode(bst.method==='hazen'?'hazen':'ogiva'); $('#p-data').scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'}); });
+
+/* ---------- tabela de desvios ---------- */
+const SHEET={};
+const LVTXT={1:'Nível 1 · você preenche todas as células e confere.',2:'Nível 2 · você preenche a média, os desvios e os quadrados; a tabela soma, divide e tira a raiz.',3:'Nível 3 · digite só a média; a tabela faz o resto.'};
+const fmtN=v=>Number.isFinite(v)?nf(v,3):'—';
+function shTruth(){const xs=st.raw,n=xs.length,m=xs.reduce((a,b)=>a+b,0)/n,d=xs.map(x=>x-m),q=d.map(v=>v*v),sq=q.reduce((a,b)=>a+b,0);return {xs,n,m,d,q,sd:d.reduce((a,b)=>a+b,0),ss:sq,v:sq/n,s:Math.sqrt(sq/n)};}
+function shState(){const q=R[RI]; const k=RI+':'+st.preset; if(!SHEET[k])SHEET[k]={lv:q.sheet,m:'',d:[],q:[],sd:'',ss:'',v:'',s:''}; return SHEET[k];}
+function shComputed(S){
+  const T=shTruth(), n=T.n, m=parseFrac(S.m), lv=S.lv;
+  let d,q; if(lv===3){d=T.xs.map(x=>Number.isFinite(m)?x-m:NaN); q=d.map(v=>v*v);} else {d=T.xs.map((_,i)=>parseFrac(S.d[i])); q=T.xs.map((_,i)=>parseFrac(S.q[i]));}
+  const sd=lv===1?parseFrac(S.sd):d.reduce((a,b)=>a+b,0), ss=lv===1?parseFrac(S.ss):q.reduce((a,b)=>a+b,0);
+  const v=lv===1?parseFrac(S.v):ss/n, s=lv===1?parseFrac(S.s):Math.sqrt(v);
+  return {d,q,sd,ss,v,s};
+}
+function renderSheet(){
+  const q=R[RI], box=$('#r-sheet'); if(!q.sheet||!st.raw){box.hidden=true; box.innerHTML=''; return;}
+  box.hidden=false; const S=shState(), T=shTruth(), lv=S.lv, n=T.n;
+  const inp=(id,val,lab)=>`<input id="${id}" inputmode="decimal" aria-label="${lab}" value="${String(val??'').replace(/"/g,'')}">`;
+  let h=`<div class="sh-head"><b>Tabela de desvios</b><div class="seg sh-lv" role="group" aria-label="Nível de ajuda">${[1,2,3].map(l=>`<button data-lv="${l}" aria-pressed="${l===lv}">Nível ${l}</button>`).join('')}</div></div>
+  <p class="note">${LVTXT[lv]}</p>
+  <div class="row sh-mean"><label for="sh-m">Média = Σx ÷ n =</label>${inp('sh-m',S.m,'Média')}</div>
+  <div class="table-wrap"><table class="sheet-t"><tr><th>#</th><th>x</th><th>x − média</th><th>(x − média)²</th></tr>`;
+  T.xs.forEach((x,i)=>{h+=`<tr id="sh-r${i}"><td>${i+1}</td><td>${nf(x,3)}</td>`+
+    (lv<3?`<td>${inp('sh-d'+i,S.d[i],'Desvio da linha '+(i+1))}</td><td>${inp('sh-q'+i,S.q[i],'Quadrado da linha '+(i+1))}</td>`:`<td id="sh-cd${i}"></td><td id="sh-cq${i}"></td>`)+'</tr>';});
+  h+=`<tr class="sum"><td colspan="2">Soma</td><td>${lv===1?inp('sh-sd',S.sd,'Soma dos desvios'):'<span id="sh-csd"></span>'}</td><td>${lv===1?inp('sh-ss',S.ss,'Soma dos quadrados'):'<span id="sh-css"></span>'}</td></tr></table></div>
+  <div class="sh-res">
+    <div class="row"><label for="sh-v">Variância = Σ(x − média)² ÷ ${n} =</label>${lv===1?inp('sh-v',S.v,'Variância'):'<b id="sh-cv"></b>'}</div>
+    <div class="row"><label for="sh-s">Desvio-padrão = √variância =</label>${lv===1?inp('sh-s',S.s,'Desvio-padrão'):'<b id="sh-cs"></b>'}</div>
+  </div>
+  <div class="row"><button class="btn" id="sh-check">${lv===3?'Conferir média':'Conferir tabela'}</button><button class="btn ghost" id="sh-use">Levar o desvio-padrão para a resposta</button><button class="btn ghost" id="sh-clear">Limpar tabela</button></div>
+  <p class="r-fb" id="sh-msg" hidden></p>`;
+  box.innerHTML=h;
+  box.querySelectorAll('.sh-lv button').forEach(b=>b.onclick=()=>{S.lv=+b.dataset.lv; renderSheet();});
+  const bind=(id,set)=>{const e=$('#'+id); if(e) e.addEventListener('input',()=>{set(e.value); e.classList.remove('sh-ok','sh-bad'); shUpdate(); saveState();});};
+  bind('sh-m',v=>S.m=v); T.xs.forEach((_,i)=>{bind('sh-d'+i,v=>S.d[i]=v); bind('sh-q'+i,v=>S.q[i]=v);});
+  bind('sh-sd',v=>S.sd=v); bind('sh-ss',v=>S.ss=v); bind('sh-v',v=>S.v=v); bind('sh-s',v=>S.s=v);
+  $('#sh-check').onclick=shCheck; $('#sh-clear').onclick=()=>{const k=RI+':'+st.preset; SHEET[k]={lv:S.lv,m:'',d:[],q:[],sd:'',ss:'',v:'',s:''}; renderSheet(); saveState();};
+  $('#sh-use').onclick=()=>{const c=shComputed(S); const r=$('#r-val'); if(!Number.isFinite(c.s)){shMsg('Complete a tabela antes.','bad');return;} if(r){r.value=nfix(c.s,3); r.focus();} shMsg('Valor copiado para a resposta. Agora clique em Conferir.','');};
+  shUpdate();
+}
+function shMsg(t,c){const m=$('#sh-msg'); m.hidden=false; m.className='r-fb '+(c||''); m.innerHTML=t;}
+function shUpdate(){
+  const S=shState(), T=shTruth(), c=shComputed(S), lv=S.lv;
+  if(lv===3) T.xs.forEach((_,i)=>{$('#sh-cd'+i).textContent=fmtN(c.d[i]); $('#sh-cq'+i).textContent=fmtN(c.q[i]);});
+  if(lv>1){$('#sh-csd').textContent=fmtN(c.sd); $('#sh-css').textContent=fmtN(c.ss); $('#sh-cv').textContent=fmtN(c.v); $('#sh-cs').textContent=fmtN(c.s);}
+  // destaque das linhas que mais pesam (quando os quadrados estão disponíveis)
+  const qs=lv===3?c.q:T.q, show=lv===3?Number.isFinite(c.s):false;
+  const top=[...qs.keys()].sort((a,b)=>qs[b]-qs[a]).slice(0,2);
+  T.xs.forEach((_,i)=>$('#sh-r'+i).classList.toggle('big',show&&top.includes(i)&&qs[i]>0));
+}
+function shCheck(){
+  const S=shState(), T=shTruth(), lv=S.lv, n=T.n; const close=(a,b,t)=>Number.isFinite(a)&&Math.abs(a-b)<=t;
+  const mark=(id,ok)=>{const e=$('#'+id); if(e){e.classList.toggle('sh-ok',ok); e.classList.toggle('sh-bad',!ok);} return ok;};
+  let first=null;
+  if(!mark('sh-m',close(parseFrac(S.m),T.m,0.005))) first=first||`A média não confere: some os ${n} valores e divida por ${n}.`;
+  if(lv<3){
+    T.xs.forEach((x,i)=>{
+      if(!mark('sh-d'+i,close(parseFrac(S.d[i]),T.d[i],0.011))) first=first||`Linha ${i+1}: o desvio é x − média, ou seja, ${nf(x,3)} − ${nf(T.m,3)}.`;
+      if(!mark('sh-q'+i,close(parseFrac(S.q[i]),T.q[i],0.051))) first=first||`Linha ${i+1}: eleve o desvio ao quadrado. Lembre que o quadrado de um número negativo é positivo.`;
+    });
+  }
+  if(lv===1){
+    if(!mark('sh-sd',close(parseFrac(S.sd),T.sd,0.02))) first=first||'Some a coluna dos desvios (cuidado com os sinais).';
+    if(!mark('sh-ss',close(parseFrac(S.ss),T.ss,0.1))) first=first||'Some a coluna dos quadrados.';
+    if(!mark('sh-v',close(parseFrac(S.v),T.v,0.01))) first=first||`A variância é a soma dos quadrados dividida por n = ${n}.`;
+    if(!mark('sh-s',close(parseFrac(S.s),T.s,0.01))) first=first||'O desvio-padrão é a raiz quadrada da variância.';
+  }
+  if(first){shMsg(first,'bad'); sfx.bad(); logEv('tabela',{correta:0,nivel_tabela:lv,resposta:first.replace(/<[^>]+>/g,'')}); return;}
+  sfx.ok(); logEv('tabela',{correta:1,nivel_tabela:lv});
+  const top=[...T.q.keys()].sort((a,b)=>T.q[b]-T.q[a]).slice(0,2);
+  T.xs.forEach((_,i)=>$('#sh-r'+i).classList.toggle('big',top.includes(i)&&T.q[i]>0));
+  const share=(top.reduce((a,i)=>a+T.q[i],0)/T.ss*100)||0;
+  shMsg(`✓ ${lv===3?'Média correta.':'Tabela correta!'} Desvio-padrão = ${nf(T.s,3)}.<br>Repare: a soma dos desvios deu 0 (isso sempre acontece). As duas linhas destacadas respondem por ${nf(share,0)}% da soma dos quadrados.`,'ok');
+}
+/* ---------- um número para representar todos ---------- */
+const REPS={};
+function repState(){const q=R[RI],k=RI+':'+st.preset; if(!REPS[k]){const lo=st.xs[0],hi=st.xs[st.n-1]; const pi=R.findIndex(x=>x.id==='palpite'); const pv=parseFrac(ANS[pi]&&ANS[pi].v); REPS[k]={c:(st.preset==='onibus'&&Number.isFinite(pv))?pv:+(lo+(hi-lo)*0.2).toFixed(1),loss:q.rep==='abs'?'abs':'sq'};} return REPS[k];}
+function lossAt(c,t){const x=st.raw;let s=0;for(const v of x)s+=t==='abs'?Math.abs(v-c):(v-c)**2;return s;}
+function renderRep(){
+  const q=R[RI], box=$('#r-rep'); if(!q.rep||!st.raw){box.hidden=true; box.innerHTML=''; return;}
+  box.hidden=false; const S=repState();
+  const lo=st.xs[0],hi=st.xs[st.n-1],pad=Math.max(1,(hi-lo)*0.1);
+  box.innerHTML=`<div class="sh-head"><b>Um número para representar todos</b>
+    <div class="seg sh-lv" role="group" aria-label="Tipo de perda"><button data-l="sq" aria-pressed="${S.loss==='sq'}">Perda (x − c)²</button><button data-l="abs" aria-pressed="${S.loss==='abs'}"${q.rep==='abs'?'':' hidden'}>Perda |x − c|</button></div></div>
+    <p class="note">Troque todos os dados por um único número c. Cada barra magenta é o erro dessa troca; a curva de baixo mostra a perda média para cada c. Arraste o controle ou clique no gráfico.</p>
+    <div class="row"><label for="rep-c">c =</label><input type="range" id="rep-c" min="${(lo-pad).toFixed(1)}" max="${(hi+pad).toFixed(1)}" step="0.1" value="${S.c}" style="flex:1;min-width:160px"><input type="text" id="rep-cv" inputmode="decimal" value="${nf(S.c,1)}" aria-label="Valor de c" style="width:80px"></div>
+    <div class="chart"><svg id="rep-svg" role="img" aria-label="Erros de trocar cada dado por c e curva da perda"></svg></div>
+    <div class="table-wrap"><table id="rep-t"></table></div>`;
+  box.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{S.loss=b.dataset.l; renderRep();});
+  const set=c=>{c=Math.round(Math.min(hi+pad,Math.max(lo-pad,c))*10)/10; S.c=c; $('#rep-c').value=c; $('#rep-cv').value=nf(c,1); drawRep(); saveState();};
+  $('#rep-c').addEventListener('input',e=>set(+e.target.value));
+  $('#rep-cv').addEventListener('change',e=>{const v=parseFrac(e.target.value); if(Number.isFinite(v))set(v);});
+  box._set=set; drawRep();
+}
+function drawRep(){
+  const RS=repState(), svg=$('#rep-svg'), x=st.raw, n=x.length, t=RS.loss;
+  const lo0=st.xs[0],hi0=st.xs[st.n-1],pad=Math.max(1,(hi0-lo0)*0.1),lo=lo0-pad,hi=hi0+pad;
+  const W=Math.max(300,svg.parentNode.clientWidth), L=44,Rm=14,T=10,rowH=Math.max(12,Math.min(18,190/n)),H1=rowH*n+8,gap=30,H2=150,B=28;
+  const top0=T, bot0=T+H1+gap, H=bot0+H2+B; svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.textContent='';
+  const sx=v=>L+(v-lo)/(hi-lo)*(W-L-Rm);
+  const f=c=>lossAt(c,t)/n; const cs=[]; for(let i=0;i<=160;i++)cs.push(lo+(hi-lo)*i/160);
+  const fmax=Math.max(...cs.map(f))*1.08, syB=v=>bot0+H2-v/fmax*H2;
+  const g=S('g',null,svg);
+  for(const v of niceTicks(lo,hi,Math.max(4,Math.floor(W/90)))){S('line',{x1:sx(v),x2:sx(v),y1:top0,y2:bot0+H2,class:'gridline'},g);const tx=S('text',{x:sx(v),y:bot0+H2+16,'text-anchor':'middle'},g);tx.textContent=nf(v,2);}
+  for(const v of niceTicks(0,fmax,3)){S('line',{x1:L,x2:W-Rm,y1:syB(v),y2:syB(v),class:'gridline'},g);const tx=S('text',{x:L-6,y:syB(v)+4,'text-anchor':'end'},g);tx.textContent=nf(v,1);}
+  const p1=S('text',{x:L+4,y:bot0-8,class:'t-panel'},g); p1.textContent=t==='abs'?'Perda média Σ|x − c| ÷ n':'Perda média Σ(x − c)² ÷ n';
+  // linhas das observações
+  x.forEach((v,i)=>{const y=top0+rowH*(i+0.5)+4; S('line',{x1:sx(v),x2:sx(RS.c),y1:y,y2:y,class:'rep-err'},g); S('circle',{cx:sx(v),cy:y,r:4,class:'rep-pt'},g);});
+  S('line',{x1:sx(RS.c),x2:sx(RS.c),y1:top0,y2:bot0+H2,class:'rep-c'},g);
+  S('line',{x1:L,x2:W-Rm,y1:bot0+H2,y2:bot0+H2,class:'axis'},g); S('line',{x1:L,x2:L,y1:bot0,y2:bot0+H2,class:'axis'},g);
+  S('path',{d:cs.map((c,i)=>(i?'L':'M')+sx(c)+','+syB(f(c))).join(' '),class:'rep-curve'},g);
+  S('circle',{cx:sx(RS.c),cy:syB(f(RS.c)),r:5.5,class:'ball'},g);
+  const lab=S('text',{x:sx(RS.c)+(sx(RS.c)>W*0.7?-8:8),y:top0+12,'text-anchor':sx(RS.c)>W*0.7?'end':'start',class:'t-u halo'},g); lab.textContent='c = '+nf(RS.c,1);
+  const hit=S('rect',{x:L,y:top0,width:W-L-Rm,height:bot0+H2-top0,class:'hit'},svg);
+  const pick=e=>{const r=svg.getBoundingClientRect(); const px=(e.clientX-r.left)*(W/r.width); $('#r-rep')._set(lo+(px-L)/(W-L-Rm)*(hi-lo));};
+  hit.addEventListener('pointerdown',e=>{hit.setPointerCapture(e.pointerId);pick(e);}); hit.addEventListener('pointermove',e=>{if(e.buttons)pick(e);});
+  const tot=lossAt(RS.c,t);
+  $('#rep-t').innerHTML=t==='abs'
+    ?`<tr><th>c</th><th>Perda total Σ|x − c|</th><th>Perda média (÷ ${n})</th></tr><tr><td>${nf(RS.c,1)}</td><td>${nf(tot,2)}</td><td><b>${nf(tot/n,3)}</b></td></tr>`
+    :`<tr><th>c</th><th>Perda total Σ(x − c)²</th><th>Perda média (÷ ${n})</th><th>Erro típico √(perda média)</th></tr><tr><td>${nf(RS.c,1)}</td><td>${nf(tot,2)}</td><td><b>${nf(tot/n,3)}</b></td><td>${nf(Math.sqrt(tot/n),3)}</td></tr>`;
+}
+/* ---------- som ---------- */
+const snd={on:false,ctx:null};
+function ac(){ if(!snd.ctx){ try{snd.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;} } if(snd.ctx.state==='suspended') snd.ctx.resume(); return snd.ctx; }
+function tone(f,dur,type,vol,when){ if(!snd.on)return; const c=ac(); if(!c)return; const t=c.currentTime+(when||0);
+  const o=c.createOscillator(), g=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.12,t+0.008); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.15));
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+(dur||0.15)+0.03); }
+const pitch=(x,lo,hi)=>220*Math.pow(4,Math.max(0,Math.min(1,(x-lo)/((hi-lo)||1))));
+const sfx={
+  tick:()=>tone(1320,0.04,'triangle',0.04),
+  land:x=>tone(pitch(x,st.dmin,st.dmax),0.28,'sine',0.14),
+  seq:(vals,lo,hi,gap,vol)=>vals.forEach((v,i)=>tone(pitch(v,lo,hi),Math.max(0.09,gap*1.6),'sine',vol||0.12,i*gap)),
+  brick:k=>{for(let i=0;i<Math.min(k,6);i++)tone(420+i*40,0.05,'triangle',0.05,i*0.07);},
+  ok:()=>{tone(660,0.12,'sine',0.11);tone(990,0.2,'sine',0.11,0.1);},
+  bad:()=>tone(250,0.22,'triangle',0.07),
+  reg:()=>tone(880,0.1,'sine',0.07)
+};
+function setSound(on){snd.on=on; const b=$('#snd'); b.setAttribute('aria-pressed',on); b.textContent=on?'♪ Som: ligado':'♪ Som: desligado'; try{localStorage.setItem('inv-snd',on?'1':'0');}catch(e){} if(on){ac(); sfx.ok();}}
+$('#snd').addEventListener('click',()=>setSound(!snd.on));
+function listen(id){
+  if(st.busy)return; if(!snd.on)setSound(true);
+  loadPresetById(id); ensureMode('hazen');
+  const vals=[]; for(let i=0;i<16;i++) vals.push(quant(Math.random()).x);
+  setTimeout(()=>sfx.seq(vals,10,90,0.26,0.13),250);
+  showFb(`${dataLabel()}: ${vals.map(v=>nf(v,0)).join(' · ')} min`,'');
+}
+/* ---------- tema ---------- */
+const THEMES=['auto','light','dark'], TLABEL={auto:'◐ Tema: automático',light:'☀ Tema: claro',dark:'☾ Tema: escuro'};
+function setTheme(t){ const r=document.documentElement; if(t==='auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme',t);
+  $('#theme').textContent=TLABEL[t]; st.theme=t; try{localStorage.setItem('inv-theme',t);}catch(e){} }
+$('#theme').addEventListener('click',()=>setTheme(THEMES[(THEMES.indexOf(st.theme||'auto')+1)%3]));
+try{const t=localStorage.getItem('inv-theme'); if(t&&THEMES.includes(t))setTheme(t);}catch(e){}
+try{if(localStorage.getItem('inv-snd')==='1'){snd.on=true; $('#snd').setAttribute('aria-pressed','true'); $('#snd').textContent='♪ Som: ligado';}}catch(e){}
+
+/* ---------- quadro de resultados ---------- */
+const MNAME={hazen:'Hazen',step:'Escada',normal:'Normal',ogiva:'Ogiva'};
+function dataLabel(){const p=PRESETS.find(q=>q.id===st.preset); return p?p.label.split(' · ')[0]:'Seus dados';}
+function simSummary(){
+  const N=st.draws.length; if(!N)return null; const m=st.draws.reduce((a,d)=>a+d.x,0)/N;
+  const sd=Math.sqrt(st.draws.reduce((s,d)=>s+(d.x-m)**2,0)/N);
+  return {N,m,sd,pOver:st.draws.filter(d=>d.x>st.t).length/N,pNeg:st.draws.filter(d=>d.x<0).length/N};
+}
+function registerDaily(){
+  const r=simSummary(); if(!r){flash('Sorteie valores antes de registrar.');return;}
+  sfx.reg(); st.quadro.push({dados:dataLabel(),what:'dia',metodo:MNAME[st.mode],N:r.N,m:r.m,sd:r.sd,lim:st.t,p:r.pOver}); renderQuadro(); flash('Registrado no quadro.');
+}
+function registerMonth(){
+  const M=st.month; if(!M){flash('Simule os meses antes de registrar.');return;}
+  sfx.reg(); st.quadro.push({dados:dataLabel(),what:`mês (${M.days} d)`,metodo:MNAME[M.mode],N:M.tot.length,m:M.m,sd:M.sd,lim:M.bud,p:M.p}); renderQuadro(); flash('Registrado no quadro.');
+}
+function renderQuadro(){
+  let h='<tr><th>Dados</th><th>Unid.</th><th>Método</th><th>Média</th><th>DP</th><th>P(&gt; limite)</th></tr>';
+  if(!st.quadro.length) h+='<tr><td colspan="6" style="text-align:left;font-family:var(--sans);color:var(--muted)">Nada registrado ainda.</td></tr>';
+  for(const q of st.quadro) h+=`<tr><td style="font-family:var(--sans)">${q.dados}</td><td style="font-family:var(--sans)">${q.what}</td><td style="font-family:var(--sans)">${q.metodo}</td><td>${nf(q.m,2)}</td><td>${nf(q.sd,2)}</td><td>${nfix(q.p,3)} <span class="k" style="color:var(--muted)">(${nf(q.lim,2)})</span></td></tr>`;
+  $('#quadro').innerHTML=h; saveState();
+}
+$('#q-clear').addEventListener('click',()=>{st.quadro=[];renderQuadro();});
+$('#reg-day').addEventListener('click',registerDaily);
+$('#show-data').addEventListener('click',()=>{st.showData=!st.showData; updateStats();});
+let flashT; function flash(t){ if(st.view==='aula'&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#roteiro')){showFb(t,'ok');return;} const m=$('#copy-msg'); m.hidden=false; m.textContent=t; clearTimeout(flashT); flashT=setTimeout(()=>m.hidden=true,2500);}
+
+/* ---------- mês ---------- */
+function runMonths(){
+  if(st.busy)return;
+  const days=Math.max(1,Math.min(366,Math.round(+$('#m-days').value||30))), bud=parseFloat($('#m-bud').value);
+  const tot=[]; for(let m=0;m<1000;m++){let s=0; for(let d=0;d<days;d++) s+=quant(st.rng()).x; tot.push(s);}
+  const mean=tot.reduce((a,b)=>a+b,0)/tot.length, sd=Math.sqrt(tot.reduce((a,b)=>a+(b-mean)**2,0)/tot.length);
+  st.month={days,bud,tot,m:mean,sd,p:tot.filter(v=>v>bud).length/tot.length,mode:st.mode,label:dataLabel()};
+  renderMonth();
+}
+function renderMonth(){
+  const svg=$('#msvg'); svg.textContent=''; const M=st.month;
+  const W=Math.max(280,svg.parentNode.clientWidth), H=Math.round(Math.min(220,Math.max(160,W*0.42))); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const L=44,R=12,T=12,B=28;
+  if(!M){const t=S('text',{x:W/2,y:H/2,'text-anchor':'middle'},svg); t.textContent='Clique em "Simular 1000 meses".'; $('#mstats').innerHTML=''; return;}
+  const bud=parseFloat($('#m-bud').value); M.bud=bud; M.p=M.tot.filter(v=>v>bud).length/M.tot.length;
+  let lo=Math.min(...M.tot,bud), hi=Math.max(...M.tot,bud); const pad=(hi-lo)*0.06||1; lo-=pad; hi+=pad;
+  const nb=30,bw=(hi-lo)/nb,cnt=new Array(nb).fill(0); for(const v of M.tot)cnt[Math.min(nb-1,Math.floor((v-lo)/bw))]++;
+  const cmax=Math.max(...cnt)*1.12, sx=v=>L+(v-lo)/(hi-lo)*(W-L-R), sy=c=>T+(1-c/cmax)*(H-T-B);
+  const g=S('g',null,svg);
+  for(const v of niceTicks(0,cmax,3)){S('line',{x1:L,x2:W-R,y1:sy(v),y2:sy(v),class:'gridline'},g);const t=S('text',{x:L-6,y:sy(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,0);}
+  for(const v of niceTicks(lo,hi,Math.max(3,Math.floor(W/90)))){const t=S('text',{x:sx(v),y:H-B+16,'text-anchor':'middle'},g);t.textContent=nf(v,1);}
+  for(let i=0;i<nb;i++){if(!cnt[i])continue;const a=lo+i*bw;S('rect',{x:sx(a)+0.5,y:sy(cnt[i]),width:Math.max(0.5,sx(a+bw)-sx(a)-1),height:sy(0)-sy(cnt[i]),class:'bar'+(a+bw/2>bud?' over':'')},g);}
+  S('line',{x1:L,x2:W-R,y1:sy(0),y2:sy(0),class:'axis'},g);
+  S('line',{x1:sx(bud),x2:sx(bud),y1:T,y2:sy(0),class:'bud'},g);
+  const tb=S('text',{x:sx(bud)+(sx(bud)>W*0.7?-5:5),y:T+12,'text-anchor':sx(bud)>W*0.7?'end':'start',class:'t-u halo'},g); tb.textContent='orçamento '+nf(bud,2);
+  $('#mstats').innerHTML=`<tr><th></th><th>Total do mês</th></tr>
+  <tr><td>Dados · método</td><td style="font-family:var(--sans)">${M.label} · ${MNAME[M.mode]}</td></tr>
+  <tr><td>Meses simulados</td><td>${M.tot.length.toLocaleString('pt-BR')}</td></tr>
+  <tr><td>Média</td><td>${nf(M.m,2)}</td></tr>
+  <tr><td>Desvio-padrão</td><td>${nf(M.sd,2)}</td></tr>
+  <tr><td>P(total &gt; ${nf(bud,2)})</td><td><b>${nfix(M.p,3)}</b></td></tr>`;
+}
+$('#m-run').addEventListener('click',runMonths);
+$('#m-reg').addEventListener('click',registerMonth);
+$('#m-bud').addEventListener('input',()=>{if(st.month)renderMonth();});
+
+/* ---------- roteiro ---------- */
+function loadPresetById(id){const p=PRESETS.find(q=>q.id===id); if(p&&st.preset!==id)loadPreset(p); else if(p){st.t=p.t;$('#thr').value=p.t;updateStats();}}
+function ensureMode(m){if(st.mode!==m)setMode(m);}
+function go(sel){const el=$(sel); if(el)el.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});}
+function newSeed(){const v=Math.floor(Math.random()*90000)+1000; $('#seed').value=v; resetDraws(); renderHist(); updateStats();}
+const cnt45=()=>st.xs.filter(v=>v>45).length;
+const PARTS=['1 · A ilusão da média','2 · Medindo a dispersão','3 · Da amostra ao simulador','4 · Simular para medir o risco','5 · Quando o sino engana'];
+const ENUN={
+ A1:{t:'Atividade 1 · O tempo de deslocamento e o risco de atraso',box:'Trânsito vs. trilhos',
+  txt:'Você tem uma prova final importantíssima na faculdade ou na escola. Você pode escolher entre dois meios de transporte para chegar: o metrô (opção A) ou o ônibus (opção B). Os dois levam, em média, pouco mais de 40 minutos de viagem.',
+  dados:'Dados simulados de 10 viagens anteriores (tempo em minutos):',
+  linhas:[['Opção A (metrô)','40, 41, 39, 40, 40, 42, 39, 40, 41, 38'],['Opção B (ônibus)','20, 60, 30, 80, 25, 75, 20, 50, 65, 15']],
+  q:'Se você tem apenas 45 minutos de tolerância antes que os portões fechem, qual transporte garante sua entrada?'},
+ A1x:{t:'Atividade 1 · dado extra para comparar dispersões',box:'Outra linha de ônibus',
+  txt:'Um colega pega outra linha de ônibus para o mesmo destino e anotou 10 viagens. Compare com a linha que você já analisou (opção B).',
+  dados:'Tempo em minutos:',
+  linhas:[['Ônibus, linha 1 (opção B)','20, 60, 30, 80, 25, 75, 20, 50, 65, 15'],['Ônibus, linha 2','15, 43, 43, 43, 43, 43, 43, 43, 44, 80']],
+  q:'Se você tem apenas 45 minutos de tolerância, qual das duas linhas é mais arriscada?'},
+ A2:{t:'Atividade 2 · Banhos demorados e o fim da água quente',box:'A guerra do chuveiro',
+  txt:'Na sua casa, a conta de água sempre dá sustos no final do mês. Você decidiu monitorar o tempo de banho dos seus dois irmãos: o Irmão X e a Irmã Y. O boiler do aquecedor da casa só suporta banhos de até 15 minutos; depois disso, a água fica completamente gelada.',
+  dados:'Tempo de banho em minutos durante 8 dias:',
+  linhas:[['Irmão X (rotina fixa, sempre atrasado)','9, 11, 10, 10, 9, 11, 10, 10'],['Irmã Y (lava o cabelo de vez em quando)','5, 20, 5, 5, 20, 5, 5, 15']],
+  q:'Com que frequência a água quente acaba na vez de cada um?'},
+ A3:{t:'Atividade 3 · A mesada e os lanches de aplicativo',box:'Sobrevivendo até o fim do mês',
+  txt:'Dois amigos ganham a mesma quantia de mesada para gastar com lanches na faculdade. Eles anotaram o quanto gastaram por dia (em reais) durante 6 dias.',
+  dados:'Gasto diário em R$:',
+  linhas:[['Amigo A (lancha na cantina todo dia)','10, 11, 10, 12, 11, 12'],['Amigo B (pede delivery caro, depois passa fome)','0, 25, 0, 30, 0, 11']],
+  q:'Como saber se a mesada do mês inteiro vai estourar?'}
+};
+const sq=()=>nf(st.xs.reduce((s,v)=>s+(v-st.mu)**2,0),2);
+const hintSd=()=>`Média = ${nf(st.mu,3)}. Σ(x − média)² = ${sq()}. Divida por n = ${st.n} e tire a raiz.`;
+const amp=()=>st.xs[st.n-1]-st.xs[0];
+const needSim=()=>st.draws.length?null:'Faça a simulação primeiro (botão acima).';
+const R=[
+ {part:0,ativ:'A1',title:'Metrô: a média',enter:()=>{loadPresetById('metro');ensureMode('hazen');},
+  ask:'Calcule a média dos 10 tempos do metrô.',type:'num',unit:'min',ans:()=>st.mu,tol:0.05,hint:'Some os 10 valores e divida por 10.'},
+ {part:0,ativ:'A1',title:'Ônibus: a média',enter:()=>{loadPresetById('onibus');ensureMode('hazen');},
+  ask:'Agora calcule a média dos 10 tempos do ônibus.',type:'num',unit:'min',ans:()=>st.mu,tol:0.05,hint:()=>`A soma dos tempos é ${nf(st.xs.reduce((a,b)=>a+b,0),2)}.`,
+  com:'As médias são parecidas: diferem só 4 minutos.'},
+ {part:0,ativ:'A1',title:'A média basta?',
+  ask:'Olhando só as médias (40 e 44 min), qualquer um dos dois serve para chegar em até 45 min?',type:'choice',
+  opts:[{t:'Sim: as duas médias ficam abaixo de 45 min.',fb:'Cuidado: a média é um valor típico, não uma garantia. Uma viagem pode demorar bem mais que a média.'},
+        {t:'Não dá para saber só com a média.',ok:true,fb:'Isso. A média não diz nada sobre o quanto as viagens variam de um dia para o outro.'},
+        {t:'O metrô é melhor porque sua média é 4 min menor.',fb:'A diferença entre as médias é pequena. O que separa os dois transportes é outra coisa; vamos descobrir.'}]},
+ {part:0,ativ:'A1',title:'Olhando os dados',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ver os tijolinhos do ônibus',f:()=>{setTab('show');go('#builder');}}],
+  ask:'No histograma de tijolinhos do ônibus, em quantas das 10 viagens você perderia a prova (tempo acima de 45 min)?',type:'num',unit:'viagens',ans:()=>st.xs.filter(v=>v>45).length,tol:0.01,hint:'Conte os tijolinhos à direita de 45.',
+  com:'Metade das viagens! No metrô, o maior tempo foi 42 min.'},
+
+ {part:1,ativ:'A1',title:'Amplitude do metrô',enter:()=>{loadPresetById('metro');},
+  ctx:'A medida de dispersão mais simples é a amplitude: o maior valor menos o menor.',
+  ask:'Calcule a amplitude dos tempos do metrô.',type:'num',unit:'min',ans:amp,tol:0.01,hint:'Encontre o maior e o menor tempo da lista.'},
+ {part:1,ativ:'A1',title:'Amplitude do ônibus',enter:()=>{loadPresetById('onibus');},
+  ask:'Calcule a amplitude dos tempos do ônibus.',type:'num',unit:'min',ans:amp,tol:0.01,hint:'Encontre o maior e o menor tempo da lista.',
+  com:'Amplitude de 4 min no metrô contra 65 min no ônibus: a amplitude já mostra que o ônibus é muito mais imprevisível.'},
+ {part:1,ativ:'A1',id:'palpite',title:'Um número para todos',enter:()=>{loadPresetById('onibus');},
+  ctx:'Imagine que alguém pergunta "quanto tempo leva o ônibus?" e você só pode responder com um número.',
+  ask:'Que tempo único você informaria para o ônibus? Escreva seu palpite (em minutos).',type:'predict',unit:'min',
+  com:'Guarde seu palpite. Na próxima pergunta você mede quanto se perde ao trocar as 10 viagens por esse único número.'},
+ {part:1,ativ:'A1',title:'Quanto se perde na troca?',rep:'sq',enter:()=>{loadPresetById('onibus');},
+  ctx:'Ao responder com um número c, cada viagem real x fica com um erro x − c. Para medir a perda total, somamos os erros ao quadrado, Σ(x − c)², para que erros para cima e para baixo não se cancelem.',
+  ask:'Arraste c até a perda total ficar a menor possível. Em que valor de c isso acontece?',type:'num',unit:'min',ans:()=>st.mu,tol:0.3,
+  hint:'Procure o ponto mais baixo da curva de baixo.',
+  com:()=>{const i=R.findIndex(x=>x.id==='palpite'),pv=parseFrac(ANS[i]&&ANS[i].v);return (Number.isFinite(pv)?`Com o seu palpite (c = ${nf(pv,1)}), a perda total seria ${nf(lossAt(pv,'sq'),1)}. `:'')+`O mínimo fica em c = ${nf(st.mu,2)}, que é a média, com perda ${nf(lossAt(st.mu,'sq'),1)}. Nenhum outro número perde menos: é essa propriedade que faz da média a representante "oficial" de uma amostra.`;}},
+ {part:1,ativ:'A1',title:'A perda mínima tem nome',rep:'sq',enter:()=>{loadPresetById('onibus');},
+  ask:'Com c na média, quanto vale a perda média, Σ(x − c)² ÷ n? Veja a tabela abaixo do gráfico.',type:'num',ans:()=>st.sd**2,tol:0.5,
+  hint:'Coloque c exatamente na média (digite o valor na caixa ao lado do controle).',
+  com:'É a variância! A variância é a perda média de trocar cada viagem pela média, e o desvio-padrão, √554 ≈ 23,5 min, é o erro típico dessa troca. Quem diz "o ônibus leva 44 min" erra, tipicamente, cerca de 23 minutos para mais ou para menos.'},
+ {part:1,ativ:'A1',title:'E no metrô?',rep:'sq',enter:()=>{loadPresetById('metro');},
+  ask:'Repita com o metrô: coloque c no ponto de perda mínima. Qual é o erro típico, √(perda média)?',type:'num',unit:'min',ans:()=>st.sd,tol:0.02,
+  hint:'Procure o mínimo da curva e leia a última coluna da tabela.',
+  com:'Cerca de 1 min. No metrô, dizer "40 min" quase não erra: a média representa bem a amostra. No ônibus, a mesma troca erra cerca de 23 min. O desvio-padrão é a medida de quanto se perde ao resumir a amostra pela média.'},
+ {part:1,ativ:'A1',title:'E se a perda fosse absoluta? (opcional)',rep:'abs',enter:()=>{loadPresetById('onibus');},
+  ctx:'Outra forma de medir a perda é somar os erros sem sinal, Σ|x − c|. Use o botão "Perda |x − c|" acima do gráfico.',
+  ask:'Com a perda absoluta, qual o menor valor possível da perda média, Σ|x − c| ÷ n, no ônibus?',type:'num',unit:'min',ans:()=>{const x=st.xs,n=st.n,m=n%2?x[(n-1)/2]:(x[n/2-1]+x[n/2])/2;return lossAt(m,'abs')/n;},tol:0.05,
+  hint:'Repare que a curva de baixo tem um trecho plano.',
+  com:'O mínimo é 22 min, e ele vale para qualquer c entre 30 e 50! Com perda absoluta, o melhor representante é a mediana (aqui, (30 + 50)/2 = 40), mas no ônibus todo o intervalo de 30 a 50 empata. Com dois grupos de viagens, as rápidas e as engarrafadas, nenhum número único representa bem a amostra. Com a perda ao quadrado, o melhor representante é a média; com a absoluta, é a mediana.'},
+ {part:1,ativ:'A1',title:'A média representa a amostra?',
+  ask:'Em suas palavras: quando a média é uma boa representante de uma amostra, e como o desvio-padrão ajuda a saber isso?',type:'text',
+  com:'A média é o número que menos perde ao substituir todos os dados (no sentido dos erros ao quadrado). Mas "o que menos perde" não quer dizer "que perde pouco". O desvio-padrão diz quanto se perde: se é pequeno perto da média (metrô: 1 em 40), ela resume bem a amostra; se é grande (ônibus: 23 em 44), a média esconde a maior parte da história, e é preciso olhar a distribuição inteira, que é o que o simulador faz.'},
+ {part:1,ativ:'A1',title:'Desvio-padrão do metrô',sheet:1,enter:()=>{loadPresetById('metro');},
+  ctx:'O desvio-padrão usa todos os valores: calcule os desvios em relação à média, eleve ao quadrado, tire a média desses quadrados (a variância) e, por fim, a raiz quadrada.',
+  ask:'Calcule o desvio-padrão dos tempos do metrô (dividindo por n).',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd},
+ {part:1,ativ:'A1',title:'Desvio-padrão do ônibus',sheet:2,enter:()=>{loadPresetById('onibus');},
+  ask:'Repita o cálculo para o ônibus: qual o desvio-padrão dos tempos (dividindo por n)?',type:'num',unit:'min',ans:()=>st.sd,tol:0.1,hint:hintSd},
+ {part:1,ativ:'A1',title:'Por que elevar ao quadrado?',
+  ask:'Na tabela, a coluna x − média somou 0, tanto no metrô quanto no ônibus. Por que o cálculo do desvio-padrão eleva os desvios ao quadrado em vez de simplesmente somá-los?',type:'choice',
+  opts:[{t:'Para deixar os números maiores e mais fáceis de comparar.',fb:'Os números ficam maiores, mas esse não é o motivo. Pense no que acontece com os desvios negativos.'},
+        {t:'Porque os desvios positivos e negativos se cancelam: a soma deles é sempre 0. O quadrado deixa todos positivos.',ok:true,fb:'Isso. Viagens acima e abaixo da média se compensam na soma simples, que sempre dá 0 e não mede nada. Com o quadrado, todo afastamento conta. A raiz no final devolve a unidade original (minutos).'},
+        {t:'Porque é uma convenção sem motivo especial.',fb:'Há um motivo: some a coluna dos desvios de qualquer amostra e veja o que acontece.'}]},
+ {part:1,ativ:'A1',title:'Quem pesa mais na conta?',enter:()=>{loadPresetById('onibus');},
+  ask:'Na coluna (x − média)² do ônibus, qual viagem (valor de x) tem o maior quadrado?',type:'num',unit:'min',ans:()=>{const i=st.raw.map(x=>(x-st.mu)**2);return st.raw[i.indexOf(Math.max(...i))];},tol:0.01,
+  hint:'Procure a viagem mais distante da média de 44 min, para cima ou para baixo.',
+  com:'A viagem de 80 min: (80 − 44)² = 1296, quase um quarto de toda a soma (5540). As viagens muito longas ou muito curtas dominam o desvio-padrão. É por isso que ele funciona como alerta de risco: cresce justamente quando existem resultados distantes do típico.'},
+ {part:1,ativ:'A1',title:'O que a média escondia',
+  ask:'O desvio-padrão do metrô é cerca de 1,1 min, e o do ônibus, cerca de 23,5 min. Em uma frase: o que o desvio-padrão revela que a média escondia?',type:'text',
+  com:'O desvio-padrão mede o quanto os valores costumam se afastar da média. No ônibus, afastar-se 20 minutos ou mais é comum; no metrô, quase nunca passa de 2. Por isso ele funciona como medida de risco: quanto maior, maior a chance de um resultado muito diferente do típico.'},
+ {part:1,ativ:'A1x',title:'Linha 2: amplitude',enter:()=>{loadPresetById('onibus2');},
+  ask:'Calcule a média e a amplitude da linha 2. Digite aqui a amplitude.',type:'num',unit:'min',ans:amp,tol:0.01,hint:'Maior tempo menos menor tempo.',
+  com:'A linha 2 tem média 44 e amplitude 65, exatamente como a linha 1. Pela média e pela amplitude, as duas seriam iguais.'},
+ {part:1,ativ:'A1x',title:'Linha 2: desvio-padrão',sheet:2,enter:()=>{loadPresetById('onibus2');},
+  ask:'Agora calcule o desvio-padrão da linha 2 (dividindo por n).',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd,
+  com:'Cerca de 14,6 min, contra 23,5 min da linha 1. O desvio-padrão enxerga uma diferença que a amplitude não enxergou.'},
+ {part:1,ativ:'A1x',title:'Mesma amplitude, riscos diferentes',enter:()=>{loadPresetById('onibus2');},acts:[{l:'Ver os tijolinhos da linha 2',f:()=>{setTab('show');go('#builder');}}],
+  ask:'As duas linhas têm a mesma média (44) e a mesma amplitude (65). Qual é mais arriscada para quem tem 45 min?',type:'choice',
+  opts:[{t:'São igualmente arriscadas, porque média e amplitude são iguais.',fb:'Conte as viagens acima de 45 min em cada linha: 5 de 10 na linha 1 e só 1 de 10 na linha 2.'},
+        {t:'A linha 1: tem desvio-padrão maior, e 5 de 10 viagens passam de 45 min, contra 1 de 10 na linha 2.',ok:true,fb:'Isso. Na linha 2, quase todas as viagens ficam perto de 43 min; só os dois extremos são distantes. A amplitude só olha esses dois extremos.'},
+        {t:'A linha 2, porque tem uma viagem de 80 min.',fb:'As duas linhas têm uma viagem de 80 min. O que muda é o que acontece com as outras oito.'}]},
+ {part:1,ativ:'A1x',title:'Amplitude ou desvio-padrão?',
+  ask:'A amplitude usa só dois valores. Que informação ela deixa de fora? Por que o desvio-padrão acompanha melhor o risco?',type:'text',
+  com:'A amplitude depende apenas do maior e do menor valor: ignora como os outros dados se distribuem entre eles. O desvio-padrão usa a distância de cada observação até a média, então percebe se os valores se concentram perto do centro (linha 2) ou se espalham (linha 1). A amplitude ainda tem utilidade: é rápida e mostra o pior caso já observado. Mas ela tende a crescer quando se coletam mais dados, e um único valor extremo a muda por completo.'},
+
+ {part:2,ativ:'A1',title:'Construindo a acumulada',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ir para a construção',f:()=>{setTab('show');go('#builder');}},{l:'Praticar sozinho',f:()=>{setTab('prac');go('#builder');}}],
+  ctx:'Para simular viagens com o mesmo padrão da amostra, primeiro transformamos o histograma numa acumulada: empilhe os tijolinhos classe por classe.',
+  ask:'Depois de construir a ogiva do ônibus: por que a curva fica horizontal entre 34,5 e 44,5?',type:'text',
+  com:'Nenhuma viagem caiu nessa classe, então a acumulada não cresce ali. Na simulação, nenhum valor será sorteado nessa faixa: o simulador respeita o "buraco" que a amostra tem entre as viagens rápidas e as lentas.'},
+ {part:2,ativ:'A1',title:'A acumulada como régua',enter:()=>{loadPresetById('onibus');ensureMode('ogiva');},
+  acts:[{l:'Mostrar u = 0,35 no gráfico',f:()=>{st.u=0.35;$('#u').value=0.35;st.guide={u:0.35,t:2};updateGuide();updateCalc(0.35,3);go('#p-charts');}}],
+  ctx:'A acumulada vai de 0 a 1. Sorteamos u entre 0 e 1, procuramos essa altura na curva e descemos até o eixo x.',
+  ask:'Com a ogiva do ônibus, se sair u = 0,35, qual tempo x é gerado?',type:'num',unit:'min',ans:()=>qOg(0.35).x,tol:0.15,
+  hint:()=>{const q=qOg(0.35);return `0,35 fica entre F = ${nfix(q.Fa,2)} (em ${nf(q.a,3)}) e F = ${nfix(q.Fb,2)} (em ${nf(q.b,3)}). Ande a fração (0,35 − ${nfix(q.Fa,2)})/${nfix(q.pj,2)} do caminho entre ${nf(q.a,3)} e ${nf(q.b,3)}.`;}},
+ {part:2,ativ:'A1',title:'Sorteios em câmera lenta',enter:()=>{loadPresetById('onibus');ensureMode('ogiva');},
+  acts:[{l:'Preparar sorteio lento',f:()=>{ensureMode('ogiva');$('#stepmode').checked=true;st.stepMode=true;$('#speed').value=8;updateSpeedLabel();go('#p-sim');}}],
+  ctx:'Com "Avançar manualmente" ligado, faça 3 sorteios com o botão "Sortear 1". Antes de cada "Próxima etapa", diga em que classe o u vai cair.',
+  ask:'Algum sorteio caiu entre 34,5 e 44,5? Por quê?',type:'text',
+  com:'Não pode cair: nessa faixa a ogiva é horizontal. Uma reta horizontal na altura u encontra a curva sempre fora desse trecho.'},
+ {part:2,ativ:'A1',title:'Um ajuste fino: Hazen',enter:()=>{loadPresetById('onibus');ensureMode('ogiva');},
+  ask:'Na tabela de resultados (coluna "Ogiva", linha "Média"), qual a média da distribuição da ogiva? Compare com a média da amostra, 44.',type:'num',ans:()=>modelMoments('ogiva').mean,tol:0.05,
+  hint:'Veja a tabela abaixo dos gráficos, na coluna do meio.',
+  com:'A ogiva espalha cada tijolinho pela largura da classe. Como vários dados ficam perto da borda esquerda de suas classes, a média sobe um pouco. A rampa de Hazen usa uma "classe" por observação e mantém a média exatamente igual à da amostra. Daqui em diante, o simulador usa Hazen.',
+  acts:[{l:'Ver a construção de Hazen',f:()=>{setTab('show');setBMethod('hazen');go('#builder');}},{l:'Trocar a simulação para Hazen',f:()=>{ensureMode('hazen');go('#p-charts');}}]},
+
+ {part:3,ativ:'A1',id:'prev',title:'Previsão',enter:()=>{loadPresetById('onibus');ensureMode('hazen');},
+  ask:'Antes de simular: em 1000 viagens de ônibus simuladas, quantas você espera que passem de 45 min?',type:'predict',unit:'viagens',
+  com:'Guarde sua previsão. Na próxima pergunta você confere com a simulação.'},
+ {part:3,ativ:'A1',title:'Simulando o ônibus',enter:()=>{loadPresetById('onibus');ensureMode('hazen');},
+  acts:[{l:'Sortear 1000',f:()=>{sim1000();}},{l:'Registrar no quadro',f:registerDaily}],
+  ask:'Qual a proporção simulada P(X > 45)? Veja a coluna "Simulação" da tabela.',type:'num',ans:()=>simSummary()?simSummary().pOver:NaN,tol:0.006,pre:needSim,
+  com:()=>{const i=R.findIndex(x=>x.id==='prev'),pr=ANS[i]&&ANS[i].v; return (pr!=null&&pr!==''?`Sua previsão foi ${pr} viagens. `:'')+'Na amostra, 5 de 10 viagens passaram de 45 min. A simulação fica perto disso, sem ser idêntica.';}},
+ {part:3,ativ:'A1',title:'Simulando o metrô',enter:()=>{loadPresetById('metro');ensureMode('hazen');},
+  acts:[{l:'Sortear 1000',f:()=>{sim1000();}},{l:'Registrar no quadro',f:registerDaily}],
+  ask:'E no metrô, qual a proporção simulada P(X > 45)?',type:'num',ans:()=>simSummary()?simSummary().pOver:NaN,tol:0.006,pre:needSim,
+  com:'Nenhum sorteio passa de 42 min, o maior tempo observado. Atenção: isso não prova que o risco é zero. Com só 10 viagens, a amostra pode não ter registrado um dia de pane.'},
+ {part:3,ativ:'A1x',title:'Simulando a linha 2',enter:()=>{loadPresetById('onibus2');ensureMode('hazen');},
+  acts:[{l:'Sortear 1000',f:()=>{sim1000();}},{l:'Registrar no quadro',f:registerDaily}],
+  ask:'E na linha 2 do ônibus, qual a proporção simulada P(X > 45)?',type:'num',ans:()=>simSummary()?simSummary().pOver:NaN,tol:0.006,pre:needSim,
+  com:'Bem menor que na linha 1, mesmo com média e amplitude iguais. O risco acompanhou o desvio-padrão.'},
+ {part:3,ativ:'A1x',title:'Ouvindo a dispersão (opcional)',
+  acts:[{l:'♪ Ouvir 16 viagens do metrô',f:()=>listen('metro')},{l:'♪ Ouvir 16 viagens do ônibus (linha 1)',f:()=>listen('onibus')},{l:'♪ Ouvir 16 viagens da linha 2',f:()=>listen('onibus2')}],
+  ctx:'Cada nota é uma viagem sorteada pelo simulador: quanto mais longa a viagem, mais aguda a nota (a mesma escala de 10 a 90 min para os três). O som é ligado automaticamente.',
+  ask:'Como soa cada transporte? O que o "pulo" entre as notas tem a ver com o desvio-padrão?',type:'text',
+  com:'O metrô soa quase como uma nota repetida: desvio-padrão pequeno. A linha 1 salta o tempo todo entre graves e agudos, com dois grupos bem separados: desvio-padrão grande. A linha 2 repete uma nota média e, de vez em quando, dá um salto: o desvio-padrão é intermediário, mesmo com a mesma amplitude da linha 1. O desvio-padrão mede, de certo modo, o quanto a "melodia" costuma se afastar da nota central.'},
+ {part:3,title:'Qual número acompanha o risco?',
+  ask:'Olhe o quadro de resultados. Compare médias, desvios-padrão (DP) e riscos P(X > 45) de metrô, ônibus linha 1 e linha 2. Qual número acompanha o risco? E a amplitude, acompanha?',type:'text',
+  com:'As médias quase não mudam (40 a 44). O desvio-padrão cresce do metrô (cerca de 1) para a linha 2 (cerca de 15) e a linha 1 (cerca de 23), e o risco cresce junto: praticamente 0, perto de 0,1 e perto de 0,5. A amplitude não separa as duas linhas de ônibus (65 nas duas).'},
+ {part:3,ativ:'A1',title:'A simulação também varia',enter:()=>{loadPresetById('onibus');ensureMode('hazen');},
+  acts:[{l:'Nova semente e sortear 1000',f:()=>{newSeed();sim1000();}},{l:'Registrar no quadro',f:registerDaily}],
+  ask:'Simule o ônibus (linha 1) com outra semente e registre. P(X > 45) mudou em relação à primeira simulação? Isso invalida o método?',type:'text',
+  com:'Muda um pouco a cada rodada, tipicamente até ±0,03 com 1000 sorteios. É o "ruído" do Monte Carlo: o erro fica em torno de √(p(1 − p)/N), então 4 vezes mais sorteios reduzem a oscilação pela metade. O método continua válido; a precisão depende de N.'},
+
+ {part:4,ativ:'A2',title:'Irmão X: média e desvio-padrão',sheet:2,enter:()=>{loadPresetById('irmaoX');ensureMode('hazen');},
+  ask:'Calcule a média e o desvio-padrão (dividindo por n) dos banhos do Irmão X. Digite o desvio-padrão.',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd},
+ {part:4,ativ:'A2',title:'Irmã Y: média e desvio-padrão',sheet:3,enter:()=>{loadPresetById('banho');ensureMode('hazen');},
+  ask:'Agora a Irmã Y. Calcule a média e o desvio-padrão (dividindo por n). Digite o desvio-padrão.',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd,
+  com:'Os dois têm média 10 min. O desvio-padrão da Irmã Y é mais de 9 vezes o do Irmão X.'},
+ {part:4,ativ:'A2',title:'Irmã Y: amplitude',enter:()=>{loadPresetById('banho');},
+  ask:'Qual a amplitude dos banhos da Irmã Y? (A do Irmão X é 11 − 9 = 2 min.)',type:'num',unit:'min',ans:amp,tol:0.01,hint:'Maior tempo menos menor tempo.'},
+ {part:4,ativ:'A2',title:'Um sino?',enter:()=>{loadPresetById('banho');},acts:[{l:'Ver os tijolinhos',f:()=>{setTab('show');go('#builder');}}],
+  ask:'O histograma da Irmã Y tem forma de sino?',type:'choice',
+  opts:[{t:'Sim, centrado em 10 min.',fb:'Veja os tijolinhos: nenhum banho dura perto de 10 min.'},
+        {t:'Não: há dois grupos, banhos curtos (5 min) e longos (15 a 20 min).',ok:true,fb:'É uma distribuição bimodal. Uma Normal com média 10 poria a maioria dos banhos justamente onde não há nenhum. Por isso o simulador usa a própria amostra.'},
+        {t:'Não dá para saber com 8 dados.',fb:'Com poucos dados há incerteza, mas o padrão de dois grupos já aparece com clareza.'}]},
+ {part:4,ativ:'A2',title:'Quando a água esfria',enter:()=>{loadPresetById('banho');ensureMode('hazen');},
+  acts:[{l:'Sortear 1000',f:()=>{sim1000();}},{l:'Registrar no quadro',f:registerDaily}],
+  ask:'O limite t já está em 15 min. Em que proporção dos banhos simulados da Irmã Y a água fica gelada (Y > 15)?',type:'num',ans:()=>simSummary()?simSummary().pOver:NaN,tol:0.006,pre:needSim,
+  com:'Na amostra foram 2 de 8 = 0,25. A simulação dá um pouco mais, perto de 0,31, porque a rampa liga o 15 ao 20 e sorteia valores entre eles, como 16 ou 18. O simulador preenche as lacunas entre observações vizinhas; com amostras pequenas, isso pesa. Para o Irmão X, o maior banho foi 11 min: a água nunca esfria.'},
+ {part:4,ativ:'A3',title:'Amigo A: desvio-padrão',sheet:3,enter:()=>{loadPresetById('amigoA');ensureMode('hazen');},
+  ask:'Calcule a média e o desvio-padrão (dividindo por n) dos gastos do Amigo A. Digite o desvio-padrão.',type:'num',unit:'R$',ans:()=>st.sd,tol:0.05,hint:hintSd},
+ {part:4,ativ:'A3',title:'Amigo B: desvio-padrão e amplitude',sheet:3,enter:()=>{loadPresetById('amigo');ensureMode('hazen');},
+  ask:'Calcule o desvio-padrão (dividindo por n) dos gastos do Amigo B.',type:'num',unit:'R$',ans:()=>st.sd,tol:0.05,hint:hintSd,
+  com:'Mesma média de R$ 11 por dia, mas o desvio-padrão do Amigo B é cerca de 15 vezes o do Amigo A. As amplitudes também diferem: R$ 2 contra R$ 30.'},
+ {part:4,ativ:'A3',title:'Amigo B e a Normal',enter:()=>{loadPresetById('amigo');},
+  acts:[{l:'Usar a Normal e sortear 1000',f:()=>{ensureMode('normal');sim1000();go('#p-charts');}},{l:'Registrar no quadro',f:registerDaily}],
+  ask:'Simulando o Amigo B com uma Normal de mesma média e desvio-padrão, em que proporção dos dias o gasto sai negativo? Veja P(X < 0) na coluna "Simulação".',type:'num',ans:()=>simSummary()?simSummary().pNeg:NaN,tol:0.006,pre:needSim,
+  com:'Cerca de 1 em cada 5 dias com gasto negativo, o que é impossível. A Normal acerta a média e o desvio-padrão, mas não o formato: o Amigo B tem muitos dias de R$ 0 e alguns picos. Troque para Hazen e veja a faixa negativa ficar vazia.'},
+ {part:4,ativ:'A3',title:'O mês do Amigo A',enter:()=>{loadPresetById('amigoA');ensureMode('hazen');st.month=null;renderMonth();},
+  acts:[{l:'Simular 1000 meses',f:()=>{$('#m-days').value=30;$('#m-bud').value=350;runMonths();go('#p-month');}},{l:'Registrar no quadro',f:registerMonth}],
+  ctx:'Os dois amigos gastam em média R$ 11 por dia, ou R$ 330 em 30 dias. Suponha uma mesada de R$ 350 por mês, com R$ 20 de folga.',
+  ask:'Em que proporção dos meses simulados o Amigo A estoura os R$ 350?',type:'num',ans:()=>st.month&&st.month.label.startsWith('Amigo A')?st.month.p:NaN,tol:0.006,pre:()=>st.month&&st.month.label.startsWith('Amigo A')?null:'Simule os meses do Amigo A primeiro.'},
+ {part:4,ativ:'A3',title:'O mês do Amigo B',enter:()=>{loadPresetById('amigo');ensureMode('hazen');st.month=null;renderMonth();},
+  acts:[{l:'Simular 1000 meses',f:()=>{$('#m-days').value=30;$('#m-bud').value=350;runMonths();go('#p-month');}},{l:'Registrar no quadro',f:registerMonth}],
+  ask:'E o Amigo B: em que proporção dos meses ele estoura os R$ 350?',type:'num',ans:()=>st.month&&st.month.label.startsWith('Amigo B')?st.month.p:NaN,tol:0.006,pre:()=>st.month&&st.month.label.startsWith('Amigo B')?null:'Simule os meses do Amigo B primeiro.'},
+ {part:4,ativ:'A3',title:'Conclusão: o risco mora no desvio-padrão',
+  ask:'Os dois têm a mesma média diária. Por que um quase nunca estoura a mesada e o outro estoura em cerca de 4 a cada 10 meses?',type:'text',
+  com:'A diferença está só na variabilidade. O total do mês também varia, e essa variação cresce com a de cada dia: se os dias forem independentes, o desvio-padrão do mês é cerca de √30 ≈ 5,5 vezes o diário. Para o Amigo A isso dá uns R$ 4; para o B, uns R$ 66. Uma folga de R$ 20 cobre com sobra a oscilação do A, mas não a do B. A média diz quanto se gasta tipicamente; o desvio-padrão diz quanto se pode errar. É ele a medida de risco.'}
+];
+let RI=0; const ANS={};
+function saveState(){try{localStorage.setItem('inv-roteiro-v2',JSON.stringify({RI,ANS,quadro:st.quadro,view:st.view,SHEET,REPS}));}catch(e){}}
+function loadState(){try{const o=JSON.parse(localStorage.getItem('inv-roteiro-v2')||'null'); if(o){RI=Math.min(R.length-1,o.RI||0); Object.assign(ANS,o.ANS||{}); st.quadro=o.quadro||[]; if(o.view)st.view=o.view; Object.assign(SHEET,o.SHEET||{}); Object.assign(REPS,o.REPS||{});}}catch(e){}}
+const val=f=>typeof f==='function'?f():f;
+/* ---------- registro de respostas (para análise) ---------- */
+const VERSAO='alem-da-media-v1';
+const slug=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+(function(){const seen={}; R.forEach((q,i)=>{let s=slug(q.title); if(seen[s])s+='-'+(i+1); seen[s]=1; q.qid=s;});})();
+const LOG={aluno:'',turma:'',sessao:Math.random().toString(36).slice(2,10),eventos:[],tries:{},enteredAt:Date.now(),lastText:{}};
+try{const o=JSON.parse(localStorage.getItem('inv-log-v1')||'null'); if(o){LOG.aluno=o.aluno||''; LOG.turma=o.turma||''; LOG.eventos=o.eventos||[]; LOG.tries=o.tries||{}; LOG.lastText=o.lastText||{};}}catch(e){}
+function saveLog(){try{localStorage.setItem('inv-log-v1',JSON.stringify({aluno:LOG.aluno,turma:LOG.turma,eventos:LOG.eventos,tries:LOG.tries,lastText:LOG.lastText}));}catch(e){}}
+function logEv(tipo,extra){
+  const q=R[RI]; const now=Date.now();
+  LOG.eventos.push(Object.assign({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',sessao_id:LOG.sessao,data_hora:new Date(now).toISOString(),
+    pergunta_num:RI+1,pergunta_id:q.qid,parte:PARTS[q.part],tipo_pergunta:q.type,tipo_evento:tipo,tentativa_n:'',resposta:'',correta:'',valor_esperado:'',nivel_tabela:'',
+    segundos_na_pergunta:Math.round((now-LOG.enteredAt)/100)/10,dados:dataLabel(),metodo:MNAME[st.mode]},extra||{}));
+  saveLog(); updateLogInfo();
+}
+function tryN(){const k=R[RI].qid; LOG.tries[k]=(LOG.tries[k]||0)+1; return LOG.tries[k];}
+function flushText(){const q=R[RI]; if(q.type!=='text')return; const a=ANS[RI]; const v=a&&a.v||''; if(v&&v!==LOG.lastText[q.qid]){LOG.lastText[q.qid]=v; logEv('resposta_texto',{tentativa_n:tryN(),resposta:v});}}
+function goStep(i){flushText(); RI=i; LOG.enteredAt=Date.now(); renderRoteiro(true); logEv('entrar');}
+function updateLogInfo(){const e=$('#id-info'); if(!e)return; const n=LOG.eventos.filter(x=>x.tipo_evento==='tentativa'||x.tipo_evento==='resposta_texto'||x.tipo_evento==='previsao').length; e.textContent=`${n} resposta(s) registrada(s) neste navegador.`;}
+/* resumo por pergunta */
+function normEv(){return LOG.eventos.map(e=>Object.assign({},e,{aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||''}));}
+function buildResumo(){
+  const ev=normEv(), out=[]; const tempo={};
+  const ent=ev.map((e,i)=>({e,i})).filter(o=>o.e.tipo_evento==='entrar');
+  ent.forEach((o,k)=>{const t0=Date.parse(o.e.data_hora); const nx=ent[k+1]?Date.parse(ent[k+1].e.data_hora):Date.parse(ev[ev.length-1].data_hora); const d=Math.max(0,Math.min(1800,(nx-t0)/1000)); tempo[o.e.pergunta_id]=(tempo[o.e.pergunta_id]||0)+d;});
+  R.forEach((q,i)=>{
+    const E=ev.filter(e=>e.pergunta_id===q.qid), T=E.filter(e=>['tentativa','resposta_texto','previsao'].includes(e.tipo_evento));
+    const firstOk=T.findIndex(e=>e.correta===1);
+    const last=[...E].reverse().find(e=>['tentativa','resposta_texto','previsao'].includes(e.tipo_evento));
+    out.push({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',pergunta_num:i+1,pergunta_id:q.qid,titulo:q.title,parte:PARTS[q.part],tipo_pergunta:q.type,
+      tentativas:T.length,acertou:(q.type==='num'||q.type==='choice')?(firstOk>=0?1:0):'',tentativas_ate_acertar:firstOk>=0?firstOk+1:'',
+      acertou_primeira:(q.type==='num'||q.type==='choice')?(T.length?(T[0].correta===1?1:0):''):'',
+      dicas:E.filter(e=>e.tipo_evento==='dica').length,viu_comentario:E.some(e=>e.tipo_evento==='comentario')?1:0,
+      tabela_conferencias:E.filter(e=>e.tipo_evento==='tabela').length,tabela_correta:E.some(e=>e.tipo_evento==='tabela'&&e.correta===1)?1:(E.some(e=>e.tipo_evento==='tabela')?0:''),
+      tempo_total_s:Math.round((tempo[q.qid]||0)*10)/10,resposta_final:last?last.resposta:''});
+  });
+  return out;
+}
+const COLS_EV=['aluno_id','turma','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
+const COLS_RES=['aluno_id','turma','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
+function toCSV(rows,cols){const esc=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>esc(r[c])).join(';')).join('\r\n');}
+function fileBase(){const d=new Date().toISOString().slice(0,10); const s=x=>slug(x||'')||'sem'; return `respostas_${s(LOG.turma)}_${s(LOG.aluno||'anonimo')}_${d}`;}
+function exportJSON(){flushText(); return JSON.stringify({versao:VERSAO,exportado_em:new Date().toISOString(),aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',
+  perguntas:R.map((q,i)=>({num:i+1,id:q.qid,titulo:q.title,parte:PARTS[q.part],tipo:q.type,enunciado:q.ask})),
+  resumo:buildResumo(),eventos:normEv(),quadro_resultados:st.quadro},null,1);}
+function download(name,text,mime){
+  try{const blob=new Blob([(mime.includes('csv')?'﻿':'')+text],{type:mime}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1000);}catch(e){}
+}
+function copyOut(text,label){const fb=$('#r-copy-fb'); const fallback=()=>{fb.hidden=false; fb.value=text; fb.focus(); fb.select(); showFb('Copie o texto selecionado abaixo (Ctrl+C) e salve num arquivo.','');};
+  try{navigator.clipboard.writeText(text).then(()=>{fb.hidden=true; showFb(label+' copiado para a área de transferência.','ok');},fallback);}catch(e){fallback();}}
+
+function renderRoteiro(runEnter){
+  const q=R[RI]; if(runEnter&&q.enter&&!st.busy) q.enter();
+  $('#r-parts').innerHTML=PARTS.map((p,i)=>`<button data-p="${i}" aria-current="${q.part===i}">${p}</button>`).join('');
+  $('#r-parts').querySelectorAll('button').forEach(b=>b.onclick=()=>goStep(R.findIndex(x=>x.part===+b.dataset.p)));
+  $('#r-dots').innerHTML=R.map((x,i)=>{const a=ANS[i];const c=[i===RI?'cur':'',a&&a.ok?'ok':a&&a.v!=null&&a.v!==''?'done':''].join(' ');return `<button class="${c}" data-i="${i}" aria-label="Pergunta ${i+1}: ${x.title}" title="${x.title}">${i+1}</button>`;}).join('');
+  $('#r-dots').querySelectorAll('button').forEach(b=>b.onclick=()=>goStep(+b.dataset.i));
+  $('#r-meta').textContent=`Parte ${PARTS[q.part]} · pergunta ${RI+1} de ${R.length}`;
+  $('#r-title').textContent=q.title;
+  const en=$('#enun'), E=ENUN[q.ativ];
+  if(E){en.hidden=false; $('#enun-sum').textContent='Enunciado · '+E.t;
+    $('#enun-body').innerHTML=`<div class="enun-box"><b>${E.box}</b><p>${E.txt}</p></div><p class="enun-d">${E.dados}</p><ul>${E.linhas.map(([a,b])=>`<li><b>${a}:</b> <span class="mono">[${b}]</span></li>`).join('')}</ul><p class="enun-q">${E.q}</p>`;}
+  else en.hidden=true;
+  const ctx=$('#r-ctx'); ctx.hidden=!q.ctx; ctx.textContent=q.ctx||'';
+  const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; b.onclick=()=>{if(st.busy)return; a.f(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
+  $('#r-ask').textContent=q.ask;
+  const inp=$('#r-input'), a=ANS[RI]||{}; inp.innerHTML='';
+  if(q.type==='num'||q.type==='predict'){
+    inp.innerHTML=`<div class="r-answer"><input type="text" id="r-val" inputmode="decimal" aria-label="Sua resposta" value="${a.v!=null?String(a.v).replace(/"/g,''):''}"> <span class="note">${q.unit||''}</span> <button class="btn" id="r-check">${q.type==='predict'?'Guardar previsão':'Conferir'}</button>${q.hint?'<button class="btn ghost" id="r-hint">Dica</button>':''}</div>`;
+    $('#r-check').onclick=checkAns; $('#r-val').addEventListener('keydown',e=>{if(e.key==='Enter')checkAns();});
+    if(q.hint) $('#r-hint').onclick=()=>{showFb(val(q.hint),''); logEv('dica');};
+  } else if(q.type==='choice'){
+    inp.innerHTML='<div class="r-opts">'+q.opts.map((o,i)=>`<button data-i="${i}" class="${a.v===i?(o.ok?'sel-ok':'sel-bad'):''}">${o.t}</button>`).join('')+'</div>';
+    inp.querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,o=q.opts[i]; ANS[RI]={v:i,ok:!!o.ok}; logEv('tentativa',{tentativa_n:tryN(),resposta:o.t,correta:o.ok?1:0,valor_esperado:q.opts.find(x=>x.ok).t}); saveState(); renderRoteiro(false); showFb(o.fb,o.ok?'ok':'bad'); o.ok?sfx.ok():sfx.bad();});
+  } else if(q.type==='text'){
+    inp.innerHTML=`<div class="r-answer"><textarea id="r-txt" aria-label="Sua resposta" placeholder="Escreva sua resposta aqui"></textarea></div>`;
+    const t=$('#r-txt'); t.value=a.v||''; t.addEventListener('input',()=>{ANS[RI]={v:t.value,ok:false}; saveState(); const d=$('#r-dots').querySelector(`[data-i="${RI}"]`); if(d)d.classList.toggle('done',!!t.value);});
+  }
+  renderSheet(); renderRep();
+  $('#r-fb').hidden=true; const com=$('#r-com'); com.hidden=true;
+  $('#r-showcom').hidden=!q.com; $('#r-prev').disabled=RI===0; $('#r-next').textContent=RI===R.length-1?'Fim do roteiro':'Próxima ▸'; $('#r-next').disabled=RI===R.length-1;
+  if(a.ok&&q.type==='num') showFb('✓ Resposta correta.','ok');
+  $('#fab').textContent=`↑ Roteiro · ${RI+1}/${R.length}`;
+  saveState();
+}
+function showFb(html,cls){const f=$('#r-fb'); f.hidden=false; f.className='r-fb '+(cls||''); f.innerHTML=html;}
+function checkAns(){
+  const q=R[RI], raw=$('#r-val').value.trim(), v=parseFrac(raw);
+  if(q.type==='predict'){ANS[RI]={v:raw,ok:false}; logEv('previsao',{tentativa_n:tryN(),resposta:raw}); saveState(); renderRoteiro(false); showFb('Previsão guardada. Siga para a próxima pergunta.',''); sfx.tick(); return;}
+  if(!Number.isFinite(v)){showFb('Digite um número (ex.: 23,5).','bad');return;}
+  const pre=q.pre&&q.pre(); if(pre){showFb(pre,'bad');return;}
+  const target=val(q.ans), ok=Math.abs(v-target)<=q.tol+1e-9;
+  ANS[RI]={v:raw,ok}; logEv('tentativa',{tentativa_n:tryN(),resposta:raw,correta:ok?1:0,valor_esperado:Math.round(target*1000)/1000}); saveState(); renderRoteiro(false);
+  ok?sfx.ok():sfx.bad();
+  if(ok){showFb(`✓ Correto: ${nf(target,3)}${q.unit?' '+q.unit:''}.`,'ok'); if(q.com){$('#r-com').hidden=false;$('#r-com').innerHTML=val(q.com);}}
+  else showFb(`Ainda não. ${q.hint?'Tente a dica.':'Confira os valores na tabela.'}`,'bad');
+}
+$('#r-prev').onclick=()=>{if(RI>0)goStep(RI-1);};
+$('#r-next').onclick=()=>{if(RI<R.length-1)goStep(RI+1);};
+$('#r-showcom').onclick=()=>{const c=$('#r-com'); c.hidden=!c.hidden; c.innerHTML=val(R[RI].com)||''; if(!c.hidden)logEv('comentario');};
+$('#r-copy').onclick=()=>{
+  const lines=R.map((q,i)=>{const a=ANS[i]; let v=a?a.v:''; if(q.type==='choice'&&a)v=q.opts[a.v].t; return `${i+1}. ${q.title}\n   ${q.ask}\n   Resposta: ${v||'(em branco)'}${a&&q.type==='num'?(a.ok?' ✓':' ✗'):''}`;});
+  const qd=st.quadro.map(q=>`${q.dados} | ${q.what} | ${q.metodo} | média ${nf(q.m,2)} | DP ${nf(q.sd,2)} | P(> ${nf(q.lim,2)}) = ${nfix(q.p,3)}`);
+  const txt='Roteiro: média e desvio-padrão como risco\n\n'+lines.join('\n')+'\n\nQuadro de resultados:\n'+(qd.join('\n')||'(vazio)');
+  const fb=$('#r-copy-fb'); const fallback=()=>{fb.hidden=false; fb.value=txt; fb.focus(); fb.select(); showFb('Copie o texto selecionado abaixo (Ctrl+C).','');};
+  try{navigator.clipboard.writeText(txt).then(()=>{fb.hidden=true; showFb('Respostas e quadro copiados. Cole no e-mail ou no AVA.','ok');},fallback);}catch(e){fallback();}
+};
+$('#fab').onclick=()=>go('#roteiro');
+function setView(v){
+  st.view=v; document.body.classList.toggle('aula',v==='aula');
+  $('#v-aula').setAttribute('aria-pressed',v==='aula'); $('#v-full').setAttribute('aria-pressed',v==='full');
+  $('#roteiro').hidden=v!=='aula'; $('#fab').hidden=v!=='aula';
+  if(v==='aula'&&st.mode==='step') setMode('hazen');
+  renderHist(); updateStats(); saveState();
+}
+$('#v-aula').onclick=()=>setView('aula'); $('#v-full').onclick=()=>setView('full');
+$('#id-aluno').value=LOG.aluno; $('#id-turma').value=LOG.turma; updateLogInfo();
+$('#id-aluno').addEventListener('input',e=>{LOG.aluno=e.target.value.trim(); saveLog();});
+$('#id-turma').addEventListener('input',e=>{LOG.turma=e.target.value.trim(); saveLog();});
+const needId=()=>{if(!LOG.aluno){showFb('Preencha seu código no alto do roteiro antes de baixar.','bad'); $('#id-aluno').focus(); return true;} return false;};
+$('#x-json').onclick=()=>{if(needId())return; download(fileBase()+'.json',exportJSON(),'application/json'); showFb('Arquivo gerado: '+fileBase()+'.json','ok');};
+$('#x-csv').onclick=()=>{if(needId())return; flushText(); download(fileBase()+'_tentativas.csv',toCSV(normEv(),COLS_EV),'text/csv'); showFb('Arquivo gerado: '+fileBase()+'_tentativas.csv','ok');};
+$('#x-copy').onclick=()=>{if(needId())return; copyOut(exportJSON(),'JSON das respostas');};
+let resetArm=0; $('#x-reset').onclick=()=>{
+  if(Date.now()-resetArm>4000){resetArm=Date.now(); $('#x-reset').textContent='Clique de novo para apagar tudo'; setTimeout(()=>{$('#x-reset').textContent='Novo aluno neste computador';},4000); showFb('Isso apaga as respostas guardadas neste navegador. Baixe o arquivo antes, se ainda não baixou.','bad'); return;}
+  try{localStorage.removeItem('inv-log-v1'); localStorage.removeItem('inv-roteiro-v2');}catch(e){} location.reload();
+};
+
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{renderCDF();renderHist();renderBuilder();renderMonth();},120);});
+updateSpeedLabel();
+loadState();
+loadPreset(PRESETS[0]);
+document.body.classList.toggle('aula',st.view==='aula');
+setView(st.view); renderQuadro(); renderMonth();
+renderRoteiro(true); LOG.enteredAt=Date.now(); logEv('entrar');
+})();
+</script>
+
+</body>
+</html>

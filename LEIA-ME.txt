@@ -1,0 +1,39 @@
+ALÉM DA MÉDIA · roteiro de estatística com registro de respostas
+================================================================
+
+ARQUIVOS
+- alem-da-media.html ...... o widget do aluno (abre em qualquer navegador, funciona offline)
+- painel-professor.html ... junta os arquivos dos alunos e gera tabelas e planilhas
+- exemplos/ ............... 8 arquivos FICTÍCIOS (turma "EXEMPLO") só para testar o painel
+
+PARA O ALUNO
+1. Abra alem-da-media.html no navegador (Chrome, Edge, Firefox).
+2. No alto do roteiro, preencha "Seu código" (matrícula ou apelido combinado) e a turma.
+3. Responda as perguntas. Cada tentativa, dica e ação fica registrada no navegador.
+4. Ao terminar, clique em "Baixar respostas (.json)" e envie o arquivo ao professor
+   (e-mail, AVA, formulário). Nome do arquivo: respostas_<turma>_<codigo>_<data>.json
+5. Em computador compartilhado: depois de baixar, clique em "Novo aluno neste computador".
+
+PARA O PROFESSOR
+1. Abra painel-professor.html e arraste todos os .json recebidos.
+2. Veja os resultados por pergunta, por aluno, a distribuição de tentativas e as respostas escritas.
+3. Exporte as planilhas (CSV com ";" e vírgula decimal):
+   - resumo_aluno_pergunta: uma linha por aluno e pergunta (formato longo, bom para modelos)
+   - eventos: uma linha por ação (entrada, tentativa, dica, comentário, tabela...)
+   - matriz_tentativas: alunos nas linhas, perguntas nas colunas
+   - estatisticas_por_pergunta: taxa de acerto, tentativas, uso de dica, tempo
+   Python: pd.read_csv("arquivo.csv", sep=";", decimal=",")
+   R:      read.csv2("arquivo.csv", fileEncoding = "UTF-8-BOM")
+
+O QUE É REGISTRADO
+- tentativas em perguntas numéricas e de múltipla escolha (valor digitado, certo/errado, número da tentativa)
+- previsões e respostas escritas (o texto final de cada visita à pergunta)
+- uso de dica, abertura do comentário, conferências da tabela de desvios (e o nível usado)
+- ações do roteiro (sortear, registrar, simular meses) e o tempo em cada pergunta
+
+OBSERVAÇÕES
+- Os dados ficam só no navegador do aluno até ele baixar o arquivo; nada é enviado pela internet.
+- Se o download não funcionar, o botão "Copiar respostas (JSON)" copia o conteúdo para colar num arquivo .json.
+- Tempo por pergunta: cada período aberto é limitado a 30 min, para não contar o computador parado.
+- Privacidade: prefira códigos no lugar de nomes. Se os dados forem usados em pesquisa publicada,
+  é preciso consentimento dos participantes e aprovação no Comitê de Ética (Resolução CNS 510/2016).
