@@ -13,7 +13,13 @@ Roteiro interativo de estatística sobre **média, variação e risco**, com reg
 | `exemplos/` | 8 arquivos **fictícios** (turma "EXEMPLO") para testar o painel. |
 | `LEIA-ME.txt` | Instruções para aluno e professor (versão em texto simples). |
 | `coleta/` | Script do Google Apps Script que recebe as respostas numa planilha, e o passo a passo para implantá-lo. |
-| `config/` | Endereço da coleta (`coleta.json`) e lista de módulos do site (`modulos.json`). |
+| `config/` | Endereço da coleta (`coleta.json`), lista de módulos do site (`modulos.json`) e a configuração de cada módulo (`modulos/m1.json`…). |
+
+## Como os módulos são gerados
+
+Os módulos que derivam do roteiro original saem de um único arquivo, `alem-da-media.html`, que guarda um **banco** com todas as perguntas. A configuração de cada módulo (`config/modulos/mN.json`) diz quais perguntas entram e em que ordem, o título, o texto de abertura, os painéis ocultos (`css`) e a versão do registro. O gerador do site embute essa configuração em cada página. Assim, o motor de registro e envio é um só.
+
+Tipos de pergunta: `num`, `choice`, `predict`, `text` e `scale` (1 a 5). O campo `fase` separa `diagnostico` e `verificacao` (uma tentativa, sem dica nem gabarito), `atividade` e `avaliacao`. Sem configuração, o arquivo abre o roteiro completo original, com os mesmos identificadores de pergunta de sempre.
 | `scripts/build_site.py` | Gera o site dos alunos em `dist/` (um módulo por pasta, com o endereço de coleta embutido). |
 
 ## Site dos alunos e coleta automática
@@ -49,4 +55,5 @@ Os dados ficam só no navegador do aluno até ele baixar o arquivo. Prefira cód
 ## Histórico
 
 - **25/09/2026** — versão 1 (pacote `alem-da-media-pacote.zip`).
+- **01/11/2026** — Módulo 1 ("A ilusão da média"), gerado do mesmo arquivo-fonte: perguntas de diagnóstico, verificação e escala; painel do professor separa módulos.
 - **01/11/2026** — versão 2 do registro: campo Curso, identificação do módulo, envio automático para planilha do Google; painel com filtro por curso; gerador do site.

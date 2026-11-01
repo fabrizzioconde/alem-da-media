@@ -20,6 +20,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 MARCA = "''/*COLETA_URL*/"
+MARCA_CFG = "null/*MODULO_CFG*/"
 URL_OK = re.compile(r"^https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec$")
 
 
@@ -30,6 +31,8 @@ def carrega(nome):
 def pagina_inicial(cfg):
     itens = []
     for m in cfg["modulos"]:
+        if m.get("listar") is False:
+            continue
         disp = m.get("status") == "disponivel"
         titulo = html.escape(m["titulo"])
         desc = html.escape(m.get("descricao", ""))
@@ -104,6 +107,14 @@ def main():
         if fonte.count(MARCA) != 1:
             sys.exit(f"{m['arquivo']}: marcador {MARCA} não encontrado exatamente uma vez.")
         pronto = fonte.replace(MARCA, json.dumps(url))
+        if pronto.count(MARCA_CFG) != 1:
+            sys.exit(f"{m['arquivo']}: marcador {MARCA_CFG} não encontrado exatamente uma vez.")
+        if m.get("cfg"):
+            mod = json.loads((RAIZ / m["cfg"]).read_text(encoding="utf-8"))
+            if not str(mod.get("versao", "")).startswith("alem-da-media"):
+                sys.exit(f"{m['cfg']}: a versão precisa começar com 'alem-da-media' (exigência do script de coleta).")
+            # </ dentro de <script> encerraria o bloco: escapa a barra
+            pronto = pronto.replace(MARCA_CFG, json.dumps(mod, ensure_ascii=False).replace("</", "<\\/"))
         destino = saida / m["pasta"] / "index.html"
         destino.parent.mkdir(parents=True, exist_ok=True)
         destino.write_text(pronto, encoding="utf-8")

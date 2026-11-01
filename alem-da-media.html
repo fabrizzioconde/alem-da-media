@@ -243,6 +243,14 @@ body.aula #m-normal{grid-column:span 2}
 .r-opts button{font:inherit; font-size:14px; text-align:left; padding:9px 12px; border-radius:8px; border:1px solid var(--rule); background:var(--surface); color:var(--ink); cursor:pointer}
 .r-opts button.sel-ok{border-color:var(--x); background:var(--xsoft)}
 .r-opts button.sel-bad{border-color:var(--u); background:var(--usoft)}
+.r-scale{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px}
+.r-scale button{font:inherit; display:grid; gap:2px; justify-items:center; padding:8px 4px; border-radius:8px; border:1px solid var(--rule); background:var(--surface); color:var(--ink); cursor:pointer}
+.r-scale button b{font-family:var(--mono); font-size:16px}
+.r-scale button small{font-size:11px; color:var(--muted); text-align:center; line-height:1.2}
+.r-scale button[aria-pressed="true"]{border-color:var(--curve); background:var(--curve); color:var(--surface)}
+.r-scale button[aria-pressed="true"] small{color:var(--surface)}
+.r-opts button.sel-neutro{border-color:var(--curve); background:var(--grid)}
+.r-opts button:disabled, .r-answer button:disabled{cursor:default}
 .r-fb{margin:0; padding:10px 12px; border-radius:8px; background:var(--paper); font-size:14px}
 .r-fb.ok{border-left:3px solid var(--x)} .r-fb.bad{border-left:3px solid var(--u)}
 .r-com{margin:0; padding:12px 14px; border-radius:8px; border:1px dashed var(--rule); font-size:14px}
@@ -1016,7 +1024,8 @@ function renderBuilder(){
   if(bst.method==='hazen')return renderBuilderHz();
   const og=st.og, svg=$('#bsvg'); if(!og)return; svg.textContent='';
   const W=Math.max(300,svg.parentNode.clientWidth);
-  const L=44,R=14,T=22,Ht=150,gap=44,Hb=Math.round(Math.min(260,Math.max(200,W*0.34))),B=30;
+  const SOH=!!(MOD&&MOD.so_histograma); /* módulo sem a acumulada: só os tijolinhos */
+  const L=44,R=14,T=22,Ht=150,gap=SOH?0:44,Hb=SOH?0:Math.round(Math.min(260,Math.max(200,W*0.34))),B=30;
   const y0T=T+Ht, topB=y0T+gap, y0B=topB+Hb, H=y0B+B;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
   const h=og.h, lo=og.edges[0]-0.5*h, hi=og.edges[og.K]+0.5*h, n=st.n;
@@ -1026,13 +1035,13 @@ function renderBuilder(){
   const g=S('g',null,svg);
   // grades
   for(const v of niceTicks(0,ytMax,3)){S('line',{x1:L,x2:W-R,y1:syT(v),y2:syT(v),class:'gridline'},g);const t=S('text',{x:L-6,y:syT(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,2);}
-  for(const v of [0,0.25,0.5,0.75,1]){S('line',{x1:L,x2:W-R,y1:syB(v),y2:syB(v),class:'gridline'},g);const t=S('text',{x:L-6,y:syB(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,2);}
+  if(!SOH)for(const v of [0,0.25,0.5,0.75,1]){S('line',{x1:L,x2:W-R,y1:syB(v),y2:syB(v),class:'gridline'},g);const t=S('text',{x:L-6,y:syB(v)+4,'text-anchor':'end'},g);t.textContent=nf(v,2);}
   const every=Math.max(1,Math.ceil(og.K*62/(W-L-R)));
   og.edges.forEach((e,k)=>{S('line',{x1:sx(e),x2:sx(e),y1:T,y2:y0B,class:'edge'},g); if(k%every===0){const t=S('text',{x:sx(e),y:y0B+16,'text-anchor':'middle'},g);t.textContent=nf(e,3);}});
   S('line',{x1:L,x2:W-R,y1:y0T,y2:y0T,class:'axis'},g); S('line',{x1:L,x2:W-R,y1:y0B,y2:y0B,class:'axis'},g);
   S('line',{x1:L,x2:L,y1:T,y2:y0T,class:'axis'},g); S('line',{x1:L,x2:L,y1:topB,y2:y0B,class:'axis'},g);
   const pt1=S('text',{x:L+4,y:T-8,class:'t-panel'},g); pt1.textContent='Histograma da amostra · altura = f/n';
-  const pt2=S('text',{x:L+4,y:topB-8,class:'t-panel'},g); pt2.textContent='Acumulada · F no fim de cada classe';
+  if(!SOH){const pt2=S('text',{x:L+4,y:topB-8,class:'t-panel'},g); pt2.textContent='Acumulada · F no fim de cada classe';}
   const show=bst.tab==='show'; const step=show?bst.step:0; const e=bst.anim<.5?2*bst.anim*bst.anim:1-Math.pow(-2*bst.anim+2,2)/2;
   // histograma com tijolos
   for(let j=0;j<og.K;j++){
@@ -1045,6 +1054,7 @@ function renderBuilder(){
     }
     const tp=S('text',{x:x1+w/2,y:syT(og.p[j])-5,'text-anchor':'middle',class:'t-p'},g); tp.textContent=c?nfix(og.p[j],2):'0';
   }
+  if(SOH) return;
   // acumulada: colunas empilhadas
   if(show){
     for(let j=0;j<Math.min(step,og.K);j++){
@@ -1511,7 +1521,7 @@ function ensureMode(m){if(st.mode!==m)setMode(m);}
 function go(sel){const el=$(sel); if(el)el.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});}
 function newSeed(){const v=Math.floor(Math.random()*90000)+1000; $('#seed').value=v; resetDraws(); renderHist(); updateStats();}
 const cnt45=()=>st.xs.filter(v=>v>45).length;
-const PARTS=['1 · A ilusão da média','2 · Medindo a dispersão','3 · Da amostra ao simulador','4 · Simular para medir o risco','5 · Quando o sino engana'];
+const PARTS=['1 · A ilusão da média','2 · Medindo a dispersão','3 · Da amostra ao simulador','4 · Simular para medir o risco','5 · Quando o sino engana','Diagnóstico','Verificação','Avaliação da atividade'];
 const ENUN={
  A1:{t:'Atividade 1 · O tempo de deslocamento e o risco de atraso',box:'Trânsito vs. trilhos',
   txt:'Você tem uma prova final importantíssima na faculdade ou na escola. Você pode escolher entre dois meios de transporte para chegar: o metrô (opção A) ou o ônibus (opção B). Os dois levam, em média, pouco mais de 40 minutos de viagem.',
@@ -1538,7 +1548,7 @@ const sq=()=>nf(st.xs.reduce((s,v)=>s+(v-st.mu)**2,0),2);
 const hintSd=()=>`Média = ${nf(st.mu,3)}. Σ(x − média)² = ${sq()}. Divida por n = ${st.n} e tire a raiz.`;
 const amp=()=>st.xs[st.n-1]-st.xs[0];
 const needSim=()=>st.draws.length?null:'Faça a simulação primeiro (botão acima).';
-const R=[
+const BANCO=[
  {part:0,ativ:'A1',title:'Metrô: a média',enter:()=>{loadPresetById('metro');ensureMode('hazen');},
   ask:'Calcule a média dos 10 tempos do metrô.',type:'num',unit:'min',ans:()=>st.mu,tol:0.05,hint:'Some os 10 valores e divida por 10.'},
  {part:0,ativ:'A1',title:'Ônibus: a média',enter:()=>{loadPresetById('onibus');ensureMode('hazen');},
@@ -1698,27 +1708,60 @@ const R=[
   ask:'E o Amigo B: em que proporção dos meses ele estoura os R$ 350?',type:'num',ans:()=>st.month&&st.month.label.startsWith('Amigo B')?st.month.p:NaN,tol:0.006,pre:()=>st.month&&st.month.label.startsWith('Amigo B')?null:'Simule os meses do Amigo B primeiro.'},
  {part:4,ativ:'A3',title:'Conclusão: o risco mora no desvio-padrão',
   ask:'Os dois têm a mesma média diária. Por que um quase nunca estoura a mesada e o outro estoura em cerca de 4 a cada 10 meses?',type:'text',
-  com:'A diferença está só na variabilidade. O total do mês também varia, e essa variação cresce com a de cada dia: se os dias forem independentes, o desvio-padrão do mês é cerca de √30 ≈ 5,5 vezes o diário. Para o Amigo A isso dá uns R$ 4; para o B, uns R$ 66. Uma folga de R$ 20 cobre com sobra a oscilação do A, mas não a do B. A média diz quanto se gasta tipicamente; o desvio-padrão diz quanto se pode errar. É ele a medida de risco.'}
+  com:'A diferença está só na variabilidade. O total do mês também varia, e essa variação cresce com a de cada dia: se os dias forem independentes, o desvio-padrão do mês é cerca de √30 ≈ 5,5 vezes o diário. Para o Amigo A isso dá uns R$ 4; para o B, uns R$ 66. Uma folga de R$ 20 cobre com sobra a oscilação do A, mas não a do B. A média diz quanto se gasta tipicamente; o desvio-padrão diz quanto se pode errar. É ele a medida de risco.'},
+ /* ---- perguntas extras (só entram quando um módulo as escolhe) ---- */
+ {extra:1,key:'linha-2-media',part:1,ativ:'A1x',title:'Linha 2: a média',enter:()=>{loadPresetById('onibus2');},
+  ask:'Calcule a média dos 10 tempos da linha 2.',type:'num',unit:'min',ans:()=>st.mu,tol:0.05,hint:()=>`A soma dos tempos é ${nf(st.xs.reduce((a,b)=>a+b,0),2)}.`,
+  com:'A mesma média da linha 1: 44 min. E a amplitude também é igual: 80 − 15 = 65 min.'},
+ {extra:1,key:'m1-d1',fase:'diagnostico',part:5,title:'Mesma média, mesmo risco?',
+  ctx:'Responda com o que você já sabe, antes do roteiro. Não há problema em errar: esta pergunta só registra o ponto de partida. Você tem uma tentativa.',
+  ask:'Duas turmas tiveram média 6,0 na mesma prova. É possível que uma delas tenha muito mais alunos abaixo de 5 do que a outra?',type:'choice',
+  opts:[{t:'Não: com a mesma média, a quantidade de notas abaixo de 5 tem de ser parecida.'},
+        {t:'Sim: a média não diz como as notas se espalham em torno dela.',ok:true},
+        {t:'Só se as turmas tiverem quantidades diferentes de alunos.'}]},
+ {extra:1,key:'m1-d2',fase:'diagnostico',part:5,title:'Um desvio-padrão',
+  ctx:'Se não lembrar como se calcula, escreva o seu melhor palpite. Você tem uma tentativa.',
+  ask:'Calcule o desvio-padrão (dividindo por n) dos valores 2, 4 e 6.',type:'num',ans:()=>Math.sqrt(8/3),tol:0.02},
+ {extra:1,key:'m1-v1',fase:'verificacao',part:6,title:'As máquinas de café',
+  ctx:'Agora sem dicas e com uma tentativa, para ver o que mudou desde o início.',
+  ask:'Duas máquinas servem, em média, 200 ml de café. Qual medida indica melhor qual delas transborda com mais frequência um copo de 220 ml?',type:'choice',
+  opts:[{t:'A média de cada máquina.'},{t:'A amplitude de cada máquina.'},{t:'O desvio-padrão de cada máquina.',ok:true},{t:'Nenhuma delas.'}]},
+ {extra:1,key:'m1-v2',fase:'verificacao',part:6,title:'Outro desvio-padrão',ctx:'Uma tentativa.',
+  ask:'Calcule o desvio-padrão (dividindo por n) dos valores 3, 5, 7 e 9.',type:'num',ans:()=>Math.sqrt(5),tol:0.02},
+ {extra:1,key:'m1-e1',fase:'avaliacao',part:7,title:'Para o ensino médio?',
+  ctx:'Estas últimas perguntas não têm resposta certa: queremos saber a sua opinião sobre a atividade.',
+  ask:'Esta atividade seria adequada para alunos do ensino médio.',type:'scale'},
+ {extra:1,key:'m1-e2',fase:'avaliacao',part:7,title:'O widget ajudou?',
+  ask:'O widget me ajudou a entender a diferença entre a média e a dispersão dos dados.',type:'scale'},
+ {extra:1,key:'m1-e3',fase:'avaliacao',part:7,title:'O que você mudaria?',
+  ask:'O que você mudaria para usar esta atividade com alunos do ensino médio?',type:'text'}
 ];
+/* Configuração do módulo: preenchida por scripts/build_site.py. null = roteiro completo original. */
+(function(){const sl=t=>t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); const seen={}; BANCO.forEach((q,i)=>{if(q.extra)return; let s=sl(q.title); if(seen[s])s+='-'+(i+1); seen[s]=1; q._slug=s;});})();
+const MOD=null/*MODULO_CFG*/;
+const R=MOD?MOD.perguntas.map(k=>{const q=BANCO.find(x=>(x.key||x._slug)===k); if(!q) throw new Error('Pergunta não encontrada no banco: '+k); return q;}):BANCO.filter(q=>!q.extra);
 let RI=0; const ANS={};
-function saveState(){try{localStorage.setItem('inv-roteiro-v2',JSON.stringify({RI,ANS,quadro:st.quadro,view:st.view,SHEET,REPS}));}catch(e){}}
-function loadState(){try{const o=JSON.parse(localStorage.getItem('inv-roteiro-v2')||'null'); if(o){RI=Math.min(R.length-1,o.RI||0); Object.assign(ANS,o.ANS||{}); st.quadro=o.quadro||[]; if(o.view)st.view=o.view; Object.assign(SHEET,o.SHEET||{}); Object.assign(REPS,o.REPS||{});}}catch(e){}}
+function saveState(){try{localStorage.setItem(SK('inv-roteiro-v2'),JSON.stringify({RI,ANS,quadro:st.quadro,view:st.view,SHEET,REPS}));}catch(e){}}
+function loadState(){try{const o=JSON.parse(localStorage.getItem(SK('inv-roteiro-v2'))||'null'); if(o){RI=Math.min(R.length-1,o.RI||0); Object.assign(ANS,o.ANS||{}); st.quadro=o.quadro||[]; if(o.view)st.view=o.view; Object.assign(SHEET,o.SHEET||{}); Object.assign(REPS,o.REPS||{});}}catch(e){}}
 const val=f=>typeof f==='function'?f():f;
+const medida=q=>q.fase==='diagnostico'||q.fase==='verificacao';
+const faseDe=q=>q.fase||'atividade';
 /* ---------- registro de respostas (para análise) ---------- */
-const VERSAO='alem-da-media-v2';
-const MODULO='alem-da-media';
+const VERSAO=MOD?MOD.versao:'alem-da-media-v2';
+const MODULO=MOD?MOD.id:'alem-da-media';
+const SK=k=>MOD?MOD.id+':'+k:k; /* chave do navegador própria de cada módulo */
 /* Endereço do receptor de respostas (Google Apps Script). Vazio = sem envio automático.
    Preenchido pelo scripts/build_site.py a partir de config/coleta.json. */
 const COLETA_URL=''/*COLETA_URL*/;
 const slug=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-(function(){const seen={}; R.forEach((q,i)=>{let s=slug(q.title); if(seen[s])s+='-'+(i+1); seen[s]=1; q.qid=s;});})();
+R.forEach(q=>{q.qid=q.key||q._slug;});
 const LOG={aluno:'',turma:'',curso:'',sessao:Math.random().toString(36).slice(2,10),eventos:[],tries:{},enteredAt:Date.now(),lastText:{},envios:[]};
-try{const o=JSON.parse(localStorage.getItem('inv-log-v1')||'null'); if(o){LOG.aluno=o.aluno||''; LOG.turma=o.turma||''; LOG.curso=o.curso||''; LOG.eventos=o.eventos||[]; LOG.tries=o.tries||{}; LOG.lastText=o.lastText||{}; LOG.envios=o.envios||[];}}catch(e){}
-function saveLog(){try{localStorage.setItem('inv-log-v1',JSON.stringify({aluno:LOG.aluno,turma:LOG.turma,curso:LOG.curso,eventos:LOG.eventos,tries:LOG.tries,lastText:LOG.lastText,envios:LOG.envios}));}catch(e){}}
+try{const o=JSON.parse(localStorage.getItem(SK('inv-log-v1'))||'null'); if(o){LOG.aluno=o.aluno||''; LOG.turma=o.turma||''; LOG.curso=o.curso||''; LOG.eventos=o.eventos||[]; LOG.tries=o.tries||{}; LOG.lastText=o.lastText||{}; LOG.envios=o.envios||[];}}catch(e){}
+function saveLog(){try{localStorage.setItem(SK('inv-log-v1'),JSON.stringify({aluno:LOG.aluno,turma:LOG.turma,curso:LOG.curso,eventos:LOG.eventos,tries:LOG.tries,lastText:LOG.lastText,envios:LOG.envios}));}catch(e){}}
 function logEv(tipo,extra){
   const q=R[RI]; const now=Date.now();
   LOG.eventos.push(Object.assign({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',sessao_id:LOG.sessao,data_hora:new Date(now).toISOString(),
-    pergunta_num:RI+1,pergunta_id:q.qid,parte:PARTS[q.part],tipo_pergunta:q.type,tipo_evento:tipo,tentativa_n:'',resposta:'',correta:'',valor_esperado:'',nivel_tabela:'',
+    pergunta_num:RI+1,pergunta_id:q.qid,parte:PARTS[q.part],fase:faseDe(q),tipo_pergunta:q.type,tipo_evento:tipo,tentativa_n:'',resposta:'',correta:'',valor_esperado:'',nivel_tabela:'',
     segundos_na_pergunta:Math.round((now-LOG.enteredAt)/100)/10,dados:dataLabel(),metodo:MNAME[st.mode]},extra||{}));
   saveLog(); updateLogInfo();
 }
@@ -1733,10 +1776,10 @@ function buildResumo(){
   const ent=ev.map((e,i)=>({e,i})).filter(o=>o.e.tipo_evento==='entrar');
   ent.forEach((o,k)=>{const t0=Date.parse(o.e.data_hora); const nx=ent[k+1]?Date.parse(ent[k+1].e.data_hora):Date.parse(ev[ev.length-1].data_hora); const d=Math.max(0,Math.min(1800,(nx-t0)/1000)); tempo[o.e.pergunta_id]=(tempo[o.e.pergunta_id]||0)+d;});
   R.forEach((q,i)=>{
-    const E=ev.filter(e=>e.pergunta_id===q.qid), T=E.filter(e=>['tentativa','resposta_texto','previsao'].includes(e.tipo_evento));
+    const E=ev.filter(e=>e.pergunta_id===q.qid), T=E.filter(e=>['tentativa','resposta_texto','previsao','escala'].includes(e.tipo_evento));
     const firstOk=T.findIndex(e=>e.correta===1);
-    const last=[...E].reverse().find(e=>['tentativa','resposta_texto','previsao'].includes(e.tipo_evento));
-    out.push({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',pergunta_num:i+1,pergunta_id:q.qid,titulo:q.title,parte:PARTS[q.part],tipo_pergunta:q.type,
+    const last=[...E].reverse().find(e=>['tentativa','resposta_texto','previsao','escala'].includes(e.tipo_evento));
+    out.push({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',pergunta_num:i+1,pergunta_id:q.qid,titulo:q.title,parte:PARTS[q.part],fase:faseDe(q),tipo_pergunta:q.type,
       tentativas:T.length,acertou:(q.type==='num'||q.type==='choice')?(firstOk>=0?1:0):'',tentativas_ate_acertar:firstOk>=0?firstOk+1:'',
       acertou_primeira:(q.type==='num'||q.type==='choice')?(T.length?(T[0].correta===1?1:0):''):'',
       dicas:E.filter(e=>e.tipo_evento==='dica').length,viu_comentario:E.some(e=>e.tipo_evento==='comentario')?1:0,
@@ -1745,12 +1788,12 @@ function buildResumo(){
   });
   return out;
 }
-const COLS_EV=['aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
-const COLS_RES=['aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
+const COLS_EV=['aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','fase','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
+const COLS_RES=['aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','fase','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
 function toCSV(rows,cols){const esc=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>esc(r[c])).join(';')).join('\r\n');}
 function fileBase(){const d=new Date().toISOString().slice(0,10); const s=x=>slug(x||'')||'sem'; return `respostas_${s(LOG.turma)}_${s(LOG.aluno||'anonimo')}_${d}`;}
 function exportObj(){flushText(); return {versao:VERSAO,modulo:MODULO,exportado_em:new Date().toISOString(),aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',
-  perguntas:R.map((q,i)=>({num:i+1,id:q.qid,titulo:q.title,parte:PARTS[q.part],tipo:q.type,enunciado:q.ask})),
+  perguntas:R.map((q,i)=>({num:i+1,id:q.qid,titulo:q.title,parte:PARTS[q.part],fase:faseDe(q),tipo:q.type,enunciado:q.ask})),
   resumo:buildResumo(),eventos:normEv(),quadro_resultados:st.quadro};}
 function exportJSON(){return JSON.stringify(exportObj(),null,1);}
 /* envio automático ao receptor (Google Apps Script) */
@@ -1780,7 +1823,8 @@ function copyOut(text,label){const fb=$('#r-copy-fb'); const fallback=()=>{fb.hi
 
 function renderRoteiro(runEnter){
   const q=R[RI]; if(runEnter&&q.enter&&!st.busy) q.enter();
-  $('#r-parts').innerHTML=PARTS.map((p,i)=>`<button data-p="${i}" aria-current="${q.part===i}">${p}</button>`).join('');
+  const usadas=[...new Set(R.map(x=>x.part))];
+  $('#r-parts').innerHTML=usadas.map(i=>`<button data-p="${i}" aria-current="${q.part===i}">${PARTS[i]}</button>`).join('');
   $('#r-parts').querySelectorAll('button').forEach(b=>b.onclick=()=>goStep(R.findIndex(x=>x.part===+b.dataset.p)));
   $('#r-dots').innerHTML=R.map((x,i)=>{const a=ANS[i];const c=[i===RI?'cur':'',a&&a.ok?'ok':a&&a.v!=null&&a.v!==''?'done':''].join(' ');return `<button class="${c}" data-i="${i}" aria-label="Pergunta ${i+1}: ${x.title}" title="${x.title}">${i+1}</button>`;}).join('');
   $('#r-dots').querySelectorAll('button').forEach(b=>b.onclick=()=>goStep(+b.dataset.i));
@@ -1794,21 +1838,28 @@ function renderRoteiro(runEnter){
   const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; b.onclick=()=>{if(st.busy)return; a.f(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
   $('#r-ask').textContent=q.ask;
   const inp=$('#r-input'), a=ANS[RI]||{}; inp.innerHTML='';
+  const travada=medida(q)&&a.v!=null&&a.v!=='';
   if(q.type==='num'||q.type==='predict'){
-    inp.innerHTML=`<div class="r-answer"><input type="text" id="r-val" inputmode="decimal" aria-label="Sua resposta" value="${a.v!=null?String(a.v).replace(/"/g,''):''}"> <span class="note">${q.unit||''}</span> <button class="btn" id="r-check">${q.type==='predict'?'Guardar previsão':'Conferir'}</button>${q.hint?'<button class="btn ghost" id="r-hint">Dica</button>':''}</div>`;
+    inp.innerHTML=`<div class="r-answer"><input type="text" id="r-val" inputmode="decimal" aria-label="Sua resposta" value="${a.v!=null?String(a.v).replace(/"/g,''):''}"${travada?' disabled':''}> <span class="note">${q.unit||''}</span> <button class="btn" id="r-check"${travada?' disabled':''}>${q.type==='predict'?'Guardar previsão':medida(q)?'Registrar resposta':'Conferir'}</button>${q.hint&&!medida(q)?'<button class="btn ghost" id="r-hint">Dica</button>':''}</div>`;
     $('#r-check').onclick=checkAns; $('#r-val').addEventListener('keydown',e=>{if(e.key==='Enter')checkAns();});
-    if(q.hint) $('#r-hint').onclick=()=>{showFb(val(q.hint),''); logEv('dica');};
+    if(q.hint&&!medida(q)) $('#r-hint').onclick=()=>{showFb(val(q.hint),''); logEv('dica');};
   } else if(q.type==='choice'){
-    inp.innerHTML='<div class="r-opts">'+q.opts.map((o,i)=>`<button data-i="${i}" class="${a.v===i?(o.ok?'sel-ok':'sel-bad'):''}">${o.t}</button>`).join('')+'</div>';
-    inp.querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,o=q.opts[i]; ANS[RI]={v:i,ok:!!o.ok}; logEv('tentativa',{tentativa_n:tryN(),resposta:o.t,correta:o.ok?1:0,valor_esperado:q.opts.find(x=>x.ok).t}); saveState(); renderRoteiro(false); showFb(o.fb,o.ok?'ok':'bad'); o.ok?sfx.ok():sfx.bad();});
+    inp.innerHTML='<div class="r-opts">'+q.opts.map((o,i)=>`<button data-i="${i}" class="${a.v===i?(medida(q)?'sel-neutro':o.ok?'sel-ok':'sel-bad'):''}"${travada?' disabled':''}>${o.t}</button>`).join('')+'</div>';
+    inp.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(travada)return; const i=+b.dataset.i,o=q.opts[i]; ANS[RI]={v:i,ok:!!o.ok}; logEv('tentativa',{tentativa_n:tryN(),resposta:o.t,correta:o.ok?1:0,valor_esperado:q.opts.find(x=>x.ok).t}); saveState(); renderRoteiro(false);
+      if(medida(q)){showFb('Resposta registrada. Siga para a próxima pergunta.',''); sfx.tick(); return;}
+      showFb(o.fb,o.ok?'ok':'bad'); o.ok?sfx.ok():sfx.bad();});
+  } else if(q.type==='scale'){
+    const rot=['Discordo totalmente','Discordo','Neutro','Concordo','Concordo totalmente'];
+    inp.innerHTML='<div class="r-scale" role="group" aria-label="Escala de 1 a 5">'+rot.map((t,i)=>`<button data-v="${i+1}" aria-pressed="${a.v===i+1}"><b>${i+1}</b><small>${t}</small></button>`).join('')+'</div>';
+    inp.querySelectorAll('button').forEach(b=>b.onclick=()=>{const v=+b.dataset.v; ANS[RI]={v,ok:false}; logEv('escala',{tentativa_n:tryN(),resposta:v}); saveState(); renderRoteiro(false); showFb('Resposta registrada.',''); sfx.tick();});
   } else if(q.type==='text'){
     inp.innerHTML=`<div class="r-answer"><textarea id="r-txt" aria-label="Sua resposta" placeholder="Escreva sua resposta aqui"></textarea></div>`;
     const t=$('#r-txt'); t.value=a.v||''; t.addEventListener('input',()=>{ANS[RI]={v:t.value,ok:false}; saveState(); const d=$('#r-dots').querySelector(`[data-i="${RI}"]`); if(d)d.classList.toggle('done',!!t.value);});
   }
   renderSheet(); renderRep();
   $('#r-fb').hidden=true; const com=$('#r-com'); com.hidden=true;
-  $('#r-showcom').hidden=!q.com; $('#r-prev').disabled=RI===0; $('#r-next').textContent=RI===R.length-1?'Fim do roteiro':'Próxima ▸'; $('#r-next').disabled=RI===R.length-1;
-  if(a.ok&&q.type==='num') showFb('✓ Resposta correta.','ok');
+  $('#r-showcom').hidden=!q.com||medida(q); $('#r-prev').disabled=RI===0; $('#r-next').textContent=RI===R.length-1?'Fim do roteiro':'Próxima ▸'; $('#r-next').disabled=RI===R.length-1;
+  if(a.ok&&q.type==='num'&&!medida(q)) showFb('✓ Resposta correta.','ok');
   $('#fab').textContent=`↑ Roteiro · ${RI+1}/${R.length}`;
   saveState();
 }
@@ -1819,7 +1870,9 @@ function checkAns(){
   if(!Number.isFinite(v)){showFb('Digite um número (ex.: 23,5).','bad');return;}
   const pre=q.pre&&q.pre(); if(pre){showFb(pre,'bad');return;}
   const target=val(q.ans), ok=Math.abs(v-target)<=q.tol+1e-9;
+  if(medida(q)&&ANS[RI]&&ANS[RI].v!=null&&ANS[RI].v!=='')return;
   ANS[RI]={v:raw,ok}; logEv('tentativa',{tentativa_n:tryN(),resposta:raw,correta:ok?1:0,valor_esperado:Math.round(target*1000)/1000}); saveState(); renderRoteiro(false);
+  if(medida(q)){showFb('Resposta registrada. Siga para a próxima pergunta.',''); sfx.tick(); return;}
   ok?sfx.ok():sfx.bad();
   if(ok){showFb(`✓ Correto: ${nf(target,3)}${q.unit?' '+q.unit:''}.`,'ok'); if(q.com){$('#r-com').hidden=false;$('#r-com').innerHTML=val(q.com);}}
   else showFb(`Ainda não. ${q.hint?'Tente a dica.':'Confira os valores na tabela.'}`,'bad');
@@ -1860,12 +1913,21 @@ $('#x-csv').onclick=()=>{if(needId())return; flushText(); download(fileBase()+'_
 $('#x-copy').onclick=()=>{if(needId())return; copyOut(exportJSON(),'JSON das respostas');};
 let resetArm=0; $('#x-reset').onclick=()=>{
   if(Date.now()-resetArm>4000){resetArm=Date.now(); $('#x-reset').textContent='Clique de novo para apagar tudo'; setTimeout(()=>{$('#x-reset').textContent='Novo aluno neste computador';},4000); showFb('Isso apaga as respostas guardadas neste navegador. Baixe o arquivo antes, se ainda não baixou.','bad'); return;}
-  try{localStorage.removeItem('inv-log-v1'); localStorage.removeItem('inv-roteiro-v2');}catch(e){} location.reload();
+  try{localStorage.removeItem(SK('inv-log-v1')); localStorage.removeItem(SK('inv-roteiro-v2'));}catch(e){} location.reload();
 };
 
 let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{renderCDF();renderHist();renderBuilder();renderMonth();},120);});
+/* apresentação do módulo (título, abertura, painéis ocultos) */
+if(MOD){
+  if(MOD.titulo){document.title=MOD.titulo; $('header h1').textContent=MOD.titulo;}
+  if(MOD.eyebrow) $('header .eyebrow').textContent=MOD.eyebrow;
+  if(MOD.lede) $('header .lede').innerHTML=MOD.lede;
+  if(MOD.css){const e=document.createElement('style'); e.textContent=MOD.css; document.head.appendChild(e);}
+  if(MOD.textos) for(const [sel,t] of Object.entries(MOD.textos)){const el=$(sel); if(el) el.textContent=t;}
+}
 updateSpeedLabel();
 loadState();
+if(MOD&&MOD.so_aula) st.view='aula';
 loadPreset(PRESETS[0]);
 document.body.classList.toggle('aula',st.view==='aula');
 setView(st.view); renderQuadro(); renderMonth();

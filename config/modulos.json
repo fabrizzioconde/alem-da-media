@@ -4,12 +4,46 @@
   "instituicao": "Licenciatura e Bacharelado em Matemática · INFES/UFF",
   "modulos": [
     {
+      "id": "m1-ilusao-da-media",
+      "arquivo": "alem-da-media.html",
+      "cfg": "config/modulos/m1.json",
+      "pasta": "m1-ilusao-da-media",
+      "titulo": "A ilusão da média",
+      "descricao": "Dois ônibus com a mesma média, um deles faz você perder a prova. Amplitude, desvio-padrão e o risco que a média esconde.",
+      "status": "disponivel"
+    },
+    {
+      "id": "m2",
+      "titulo": "Probabilidade como frequência",
+      "descricao": "Moedas, dados e a Lei dos Grandes Números; simular para medir o risco de atraso.",
+      "status": "em-preparacao"
+    },
+    {
+      "id": "m3",
+      "titulo": "Probabilidade como razão de áreas",
+      "descricao": "Pontos ao acaso, a estimativa de π e a área de figuras irregulares.",
+      "status": "em-preparacao"
+    },
+    {
+      "id": "m4",
+      "titulo": "A agulha de Buffon",
+      "descricao": "Agulhas caindo sobre um piso de tábuas e outra forma de estimar π.",
+      "status": "em-preparacao"
+    },
+    {
+      "id": "m5",
+      "titulo": "Quão boa é a estimativa?",
+      "descricao": "O desvio-padrão das estimativas e por que o erro cai com 1/√N.",
+      "status": "em-preparacao"
+    },
+    {
       "id": "alem-da-media",
       "arquivo": "alem-da-media.html",
       "pasta": "alem-da-media",
-      "titulo": "Além da média",
-      "descricao": "Média, dispersão e risco: dois ônibus com a mesma média, um deles faz você perder a prova. Roteiro completo, com simulação de Monte Carlo.",
-      "status": "disponivel"
+      "titulo": "Aprofundamento: o roteiro completo",
+      "descricao": "Ogiva, sorteio pela inversa, soma de dias e quando o sino engana.",
+      "status": "disponivel",
+      "listar": false
     }
   ]
 }

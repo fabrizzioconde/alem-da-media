@@ -80,7 +80,7 @@ code{font-family:var(--mono); font-size:12.5px}
   <section class="panel" id="out" hidden>
     <div class="row" style="justify-content:space-between">
       <h2>2. Resultados</h2>
-      <div class="row"><label for="curso" class="note">Curso</label><select id="curso"></select><label for="turma" class="note">Turma</label><select id="turma"></select></div>
+      <div class="row"><label for="modulo" class="note">Módulo</label><select id="modulo"></select><label for="curso" class="note">Curso</label><select id="curso"></select><label for="turma" class="note">Turma</label><select id="turma"></select></div>
     </div>
     <div class="cards" id="cards"></div>
     <div class="row">
@@ -132,22 +132,29 @@ const pct=v=>Number.isFinite(v)?nf(v*100,0)+'%':'—';
 const med=a=>{a=a.filter(Number.isFinite).sort((x,y)=>x-y); if(!a.length)return NaN; const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2;};
 const mean=a=>{a=a.filter(Number.isFinite); return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let FILES={}, PERG=[], turmaSel='', cursoSel='';
+let FILES={}, PERGS={}, PERG=[], turmaSel='', cursoSel='', modSel='';
+const modDe=d=>d.modulo||'alem-da-media';
 
 function addFile(name,text){
   let d; try{d=JSON.parse(text);}catch(e){warn(`${name}: não é um JSON válido.`);return;}
   if(!d||!Array.isArray(d.resumo)||!Array.isArray(d.eventos)){warn(`${name}: não parece um arquivo de respostas do "Além da média".`);return;}
-  const key=(d.turma||'')+'|'+(d.aluno_id||'anonimo');
-  if(FILES[key]){ if((FILES[key].exportado_em||'')>(d.exportado_em||'')){warn(`${name}: arquivo mais antigo de ${d.aluno_id}; mantido o mais recente.`);return;} warn(`${d.aluno_id} apareceu em mais de um arquivo; usado o mais recente (${name}).`);}
+  const key=modDe(d)+'|'+(d.turma||'')+'|'+(d.aluno_id||'anonimo');
+  if(FILES[key]){ if((FILES[key].exportado_em||'')>(d.exportado_em||'')){warn(`${name}: arquivo mais antigo de ${d.aluno_id} (${modDe(d)}); mantido o mais recente.`);return;} warn(`${d.aluno_id} apareceu em mais de um arquivo de ${modDe(d)}; usado o mais recente (${name}).`);}
   d._file=name; FILES[key]=d;
-  if(d.perguntas&&d.perguntas.length>PERG.length) PERG=d.perguntas;
+  const m=modDe(d); if(d.perguntas&&(!PERGS[m]||d.perguntas.length>PERGS[m].length)) PERGS[m]=d.perguntas;
 }
 function warn(t){const p=document.createElement('p'); p.className='warn'; p.textContent=t; $('#warns').appendChild(p);}
 async function handle(list){
   for(const f of list){ addFile(f.name, await f.text()); }
   const n=Object.keys(FILES).length;
-  $('#status').textContent=`${n} aluno(s) carregado(s). Você pode adicionar mais arquivos a qualquer momento.`;
-  const vers=new Set(Object.values(FILES).map(d=>d.versao)); if(vers.size>1) warn('Atenção: há arquivos de versões diferentes do roteiro ('+[...vers].join(', ')+'). Compare perguntas pelo identificador.');
+  const mods=[...new Set(Object.values(FILES).map(modDe))].sort();
+  $('#status').textContent=`${n} arquivo(s) carregado(s), ${mods.length} módulo(s). Você pode adicionar mais arquivos a qualquer momento.`;
+  $('#modulo').innerHTML=mods.map(t=>`<option>${esc(t)}</option>`).join(''); if(!mods.includes(modSel)) modSel=mods[0]||''; $('#modulo').value=modSel; PERG=PERGS[modSel]||[];
+  for(const m of mods){const vers=new Set(Object.values(FILES).filter(d=>modDe(d)===m).map(d=>d.versao)); if(vers.size>1) warn(`Atenção: o módulo ${m} tem arquivos de versões diferentes (${[...vers].join(', ')}). Compare perguntas pelo identificador.`);}
+  // o mesmo código deveria aparecer em todos os módulos; avisa diferenças só de maiúsculas, espaços ou acentos
+  const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,'');
+  const grupos={}; Object.values(FILES).forEach(d=>{const k=norm(d.aluno_id); (grupos[k]=grupos[k]||new Set()).add(d.aluno_id);});
+  Object.values(grupos).forEach(g=>{if(g.size>1) warn('Códigos quase iguais (talvez o mesmo aluno): '+[...g].join(', '));});
   const turmas=[...new Set(Object.values(FILES).map(d=>d.turma||'(sem turma)'))].sort();
   $('#turma').innerHTML='<option value="">Todas</option>'+turmas.map(t=>`<option>${esc(t)}</option>`).join('');
   $('#turma').value=turmas.includes(turmaSel)?turmaSel:'';
@@ -163,16 +170,17 @@ const dz=$('#drop');
 dz.addEventListener('drop',e=>handle(e.dataTransfer.files));
 $('#turma').addEventListener('change',e=>{turmaSel=e.target.value; render();});
 $('#curso').addEventListener('change',e=>{cursoSel=e.target.value; render();});
+$('#modulo').addEventListener('change',e=>{modSel=e.target.value; PERG=PERGS[modSel]||[]; render();});
 
-function data(){return Object.values(FILES).filter(d=>(!turmaSel||(d.turma||'(sem turma)')===turmaSel)&&(!cursoSel||(d.curso||'(sem curso)')===cursoSel));}
-function rows(){return data().flatMap(d=>d.resumo.map(r=>r.curso!=null?r:Object.assign({curso:d.curso||''},r)));}
+function data(){return Object.values(FILES).filter(d=>modDe(d)===modSel&&(!turmaSel||(d.turma||'(sem turma)')===turmaSel)&&(!cursoSel||(d.curso||'(sem curso)')===cursoSel));}
+function rows(){return data().flatMap(d=>d.resumo.map(r=>Object.assign({modulo:modDe(d),curso:d.curso||'',fase:'atividade'},r)));}
 function statsPerg(){
   const R=rows();
   return PERG.map(p=>{
     const r=R.filter(x=>x.pergunta_id===p.id), gr=p.tipo==='num'||p.tipo==='choice';
     const resp=r.filter(x=>x.tentativas>0);
     const ok=resp.filter(x=>x.acertou===1), first=resp.filter(x=>x.acertou_primeira===1);
-    return {num:p.num,id:p.id,titulo:p.titulo,parte:p.parte,tipo:p.tipo,gr,
+    return {num:p.num,id:p.id,titulo:p.titulo,parte:p.parte,fase:p.fase||'atividade',tipo:p.tipo,gr,
       respondentes:resp.length, alunos:r.length,
       acerto:gr&&resp.length?ok.length/resp.length:NaN, acerto1:gr&&resp.length?first.length/resp.length:NaN,
       tentMedia:mean(resp.map(x=>x.tentativas)), tentMed:med(resp.map(x=>x.tentativas)), tentMax:resp.length?Math.max(...resp.map(x=>x.tentativas)):NaN,
@@ -196,7 +204,7 @@ function render(){
   if(ord==='dif') SS.sort((a,b)=>(Number.isFinite(a.acerto1)?a.acerto1:2)-(Number.isFinite(b.acerto1)?b.acerto1:2));
   if(ord==='tent') SS.sort((a,b)=>(b.tentMedia||0)-(a.tentMedia||0));
   $('#t-perg').innerHTML='<tr><th>#</th><th>Pergunta</th><th>Tipo</th><th>Responderam</th><th>Acertaram</th><th>Acerto na 1ª</th><th>Tentativas (média)</th><th>Mediana</th><th>Máx.</th><th>Até acertar</th><th>Usou dica</th><th>Tempo mediano</th></tr>'+
-    SS.map(s=>`<tr><td>${s.num}</td><td class="t">${esc(s.titulo)}<br><span class="note">${esc(s.parte)}</span></td><td>${{num:'numérica',choice:'escolha',text:'escrita',predict:'previsão'}[s.tipo]||s.tipo}</td><td>${s.respondentes} / ${s.alunos}</td><td>${pct(s.acerto)}</td>
+    SS.map(s=>`<tr><td>${s.num}</td><td class="t">${esc(s.titulo)}<br><span class="note">${esc(s.parte)}</span></td><td>${({num:'numérica',choice:'escolha',text:'escrita',predict:'previsão',scale:'escala'}[s.tipo]||s.tipo)+(s.fase&&s.fase!=='atividade'?`<br><span class="note">${esc(s.fase)}</span>`:'')}</td><td>${s.respondentes} / ${s.alunos}</td><td>${pct(s.acerto)}</td>
       <td>${Number.isFinite(s.acerto1)?`<span class="bar${s.acerto1<0.5?' low':''}" style="width:${Math.round(s.acerto1*60)}px"></span>`:''}${pct(s.acerto1)}</td>
       <td>${nf(s.tentMedia,2)}</td><td>${nf(s.tentMed,1)}</td><td>${nf(s.tentMax,0)}</td><td>${nf(s.ateAcertar,2)}</td><td>${pct(s.dica)}</td><td>${Number.isFinite(s.tempoMed)?nf(s.tempoMed,0)+' s':'—'}</td></tr>`).join('');
   // por aluno
@@ -205,7 +213,7 @@ function render(){
       return `<tr><td>${esc(d.aluno_id)}</td><td>${esc(d.turma)}</td><td>${esc(d.curso||'')}</td><td>${r.filter(x=>x.tentativas>0).length}</td><td>${g.filter(x=>x.acertou===1).length} / ${g.length}</td><td>${pct(g.length?g.filter(x=>x.acertou_primeira===1).length/g.length:NaN)}</td>
       <td>${r.reduce((a,x)=>a+x.tentativas,0)}</td><td>${r.reduce((a,x)=>a+x.dicas,0)}</td><td>${r.filter(x=>x.tabela_correta===1).length}</td><td>${nf(r.reduce((a,x)=>a+(x.tempo_total_s||0),0)/60,0)} min</td><td class="note">${esc(d._file)}</td></tr>`;}).join('');
   // selects
-  const gq=PERG.filter(p=>p.tipo==='num'||p.tipo==='choice'), tq=PERG.filter(p=>p.tipo==='text'||p.tipo==='predict');
+  const gq=PERG.filter(p=>p.tipo==='num'||p.tipo==='choice'), tq=PERG.filter(p=>p.tipo==='text'||p.tipo==='predict'||p.tipo==='scale');
   const keep=(sel,list)=>{const v=$(sel).value; $(sel).innerHTML=list.map(p=>`<option value="${p.id}">${p.num}. ${esc(p.titulo)}</option>`).join(''); if(list.some(p=>p.id===v))$(sel).value=v;};
   keep('#dq',gq); keep('#tq',tq); renderDist(); renderText();
 }
@@ -233,11 +241,11 @@ window.addEventListener('resize',()=>{if(!$('#v-dist').hidden)renderDist();});
 /* exportação */
 function toCSV(rows,cols){const e=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>e(r[c])).join(';')).join('\r\n');}
 function dl(name,text){const b=new Blob(['﻿'+text],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
-const tag=()=>[cursoSel,turmaSel].filter(Boolean).map(x=>x.replace(/[^\w-]+/g,'_')+'_').join('')+new Date().toISOString().slice(0,10);
-const COLS_RES=['aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
-const COLS_EV=['aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
+const tag=()=>[modSel,cursoSel,turmaSel].filter(Boolean).map(x=>x.replace(/[^\w-]+/g,'_')+'_').join('')+new Date().toISOString().slice(0,10);
+const COLS_RES=['modulo','aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','fase','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
+const COLS_EV=['modulo','aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','fase','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
 $('#e-res').onclick=()=>dl(`resumo_aluno_pergunta_${tag()}.csv`,toCSV(rows(),COLS_RES));
-$('#e-ev').onclick=()=>dl(`eventos_${tag()}.csv`,toCSV(data().flatMap(d=>d.eventos.map(e=>e.curso!=null?e:Object.assign({curso:d.curso||''},e))),COLS_EV));
+$('#e-ev').onclick=()=>dl(`eventos_${tag()}.csv`,toCSV(data().flatMap(d=>d.eventos.map(e=>Object.assign({modulo:modDe(d),curso:d.curso||'',fase:'atividade'},e))),COLS_EV));
 $('#e-mat').onclick=()=>{const D=data(); const cols=['aluno_id','turma','curso',...PERG.map(p=>'q'+String(p.num).padStart(2,'0')+'_'+p.id)];
   const rs=D.map(d=>{const o={aluno_id:d.aluno_id,turma:d.turma,curso:d.curso||''}; PERG.forEach(p=>{const r=d.resumo.find(x=>x.pergunta_id===p.id); o['q'+String(p.num).padStart(2,'0')+'_'+p.id]=r?r.tentativas:'';}); return o;});
   dl(`matriz_tentativas_${tag()}.csv`,toCSV(rs,cols));};

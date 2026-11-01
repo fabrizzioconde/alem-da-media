@@ -1,0 +1,40 @@
+{
+  "id": "m1-ilusao-da-media",
+  "versao": "alem-da-media-m1-v1",
+  "titulo": "A ilusão da média",
+  "eyebrow": "Módulo 1 · Média e dispersão",
+  "lede": "Dois ônibus podem levar o mesmo tempo <b>em média</b> e, mesmo assim, um deles fazer você perder a prova. Neste módulo você vai medir o quanto os dados <b>variam</b> e descobrir qual número revela o risco que a média esconde.",
+  "so_aula": true,
+  "perguntas": [
+    "m1-d1",
+    "m1-d2",
+    "metro-a-media",
+    "onibus-a-media",
+    "a-media-basta",
+    "olhando-os-dados",
+    "amplitude-do-metro",
+    "amplitude-do-onibus",
+    "um-numero-para-todos",
+    "quanto-se-perde-na-troca",
+    "a-perda-minima-tem-nome",
+    "desvio-padrao-do-metro",
+    "desvio-padrao-do-onibus",
+    "por-que-elevar-ao-quadrado",
+    "o-que-a-media-escondia",
+    "linha-2-media",
+    "linha-2-desvio-padrao",
+    "mesma-amplitude-riscos-diferentes",
+    "amplitude-ou-desvio-padrao",
+    "m1-v1",
+    "m1-v2",
+    "m1-e1",
+    "m1-e2",
+    "m1-e3"
+  ],
+  "css": "#p-u,#p-sim,#p-charts,#p-month,.layout>.col:last-child{display:none!important}.layout{grid-template-columns:minmax(0,1fr)!important}#p-data .field:has(#lbl-mode),#p-data .row2{display:none!important}.seg.tabs[aria-label='Modo da página']{display:none!important}.quadro{display:none!important}.r-grid{grid-template-columns:minmax(0,1fr)!important}#builder .b-head .row,#og-fold,#builder .b-side{display:none!important}.b-grid{grid-template-columns:minmax(0,1fr)!important}#presets .chip[data-id='banho'],#presets .chip[data-id='irmaoX'],#presets .chip[data-id='amigoA'],#presets .chip[data-id='amigo']{display:none!important}.wrap>details.fold{display:none!important}",
+  "so_histograma": true,
+  "textos": {
+    "#h-b": "Os tijolinhos",
+    "#builder .b-head p": "Cada tijolinho é uma observação e vale 1/n de altura. Tijolinhos na mesma coluna caíram na mesma classe de valores."
+  }
+}
