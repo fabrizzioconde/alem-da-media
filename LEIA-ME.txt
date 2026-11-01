@@ -8,9 +8,10 @@ ARQUIVOS
 
 PARA O ALUNO
 1. Abra alem-da-media.html no navegador (Chrome, Edge, Firefox).
-2. No alto do roteiro, preencha "Seu código" (matrícula ou apelido combinado) e a turma.
+2. No alto do roteiro, preencha "Seu código" (matrícula ou apelido combinado), a turma e o curso.
 3. Responda as perguntas. Cada tentativa, dica e ação fica registrada no navegador.
-4. Ao terminar, clique em "Baixar respostas (.json)" e envie o arquivo ao professor
+4. Ao terminar, clique em "Enviar respostas ao professor" (versão online). Se o envio falhar,
+   ou na versão sem envio, clique em "Baixar respostas (.json)" e envie o arquivo ao professor
    (e-mail, AVA, formulário). Nome do arquivo: respostas_<turma>_<codigo>_<data>.json
 5. Em computador compartilhado: depois de baixar, clique em "Novo aluno neste computador".
 

@@ -1,0 +1,15 @@
+{
+  "titulo": "Além da Média",
+  "subtitulo": "Atividades interativas de estatística e probabilidade",
+  "instituicao": "Licenciatura e Bacharelado em Matemática · INFES/UFF",
+  "modulos": [
+    {
+      "id": "alem-da-media",
+      "arquivo": "alem-da-media.html",
+      "pasta": "alem-da-media",
+      "titulo": "Além da média",
+      "descricao": "Média, dispersão e risco: dois ônibus com a mesma média, um deles faz você perder a prova. Roteiro completo, com simulação de Monte Carlo.",
+      "status": "disponivel"
+    }
+  ]
+}

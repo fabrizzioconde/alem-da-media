@@ -52,7 +52,7 @@ h1{margin:0; font-family:var(--serif); font-weight:600; font-size:clamp(28px,4vw
 .panel h2{margin:0; font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:600}
 label, .lbl{font-size:13px; color:var(--muted); font-weight:500}
 .field{display:grid; gap:6px}
-textarea, input[type=number], input[type=text]{font:inherit; font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--paper); border:1px solid var(--rule); border-radius:6px; padding:8px 10px; width:100%}
+textarea, input[type=number], input[type=text], select{font:inherit; font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--paper); border:1px solid var(--rule); border-radius:6px; padding:8px 10px; width:100%}
 textarea{min-height:64px; resize:vertical}
 .chips{display:flex; flex-wrap:wrap; gap:6px}
 .chip{font:inherit; font-size:13px; padding:5px 10px; border-radius:999px; border:1px solid var(--rule); background:transparent; color:var(--ink); cursor:pointer}
@@ -180,9 +180,12 @@ tr.hi td{background:var(--usoft)}
 .radios label{display:flex; gap:8px; align-items:center; color:var(--ink); font-weight:400}
 .fb{font-size:13.5px; margin:0; padding:10px 12px; border-radius:8px; background:var(--paper)}
 body.aula .adv{display:none!important}
-.idcard{display:grid; grid-template-columns:1fr 160px; gap:10px; align-items:end; padding:10px 12px; border:1px dashed var(--rule); border-radius:10px}
+.idcard{display:grid; grid-template-columns:minmax(0,1fr) 120px 240px; gap:10px; align-items:end; padding:10px 12px; border:1px dashed var(--rule); border-radius:10px}
 .idcard .note{grid-column:1/-1}
-@media (max-width:520px){ .idcard{grid-template-columns:1fr} }
+#id-curso{font-family:var(--sans); font-size:14px}
+@media (max-width:720px){ .idcard{grid-template-columns:1fr} }
+.send-st{font-size:13.5px; margin:0; padding:8px 12px; border-radius:8px; background:var(--paper)}
+.send-st.ok{border-left:3px solid var(--x)} .send-st.bad{border-left:3px solid var(--u)}
 .export{display:grid; gap:8px; border-top:1px solid var(--rule); padding-top:12px}
 .export b{font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
 .rep-err{stroke:var(--u); stroke-width:2.5; opacity:.7}
@@ -285,6 +288,7 @@ kbd{font-family:var(--mono); font-size:11px; border:1px solid var(--rule); borde
         <div class="idcard" id="idcard">
           <div class="field"><label for="id-aluno">Seu código (matrícula ou apelido combinado)</label><input type="text" id="id-aluno" autocomplete="off"></div>
           <div class="field"><label for="id-turma">Turma</label><input type="text" id="id-turma" autocomplete="off"></div>
+          <div class="field"><label for="id-curso">Curso</label><select id="id-curso"><option value="">Escolha…</option><option>Licenciatura em Matemática</option><option>Bacharelado em Matemática</option><option>Outro</option></select></div>
           <p class="note" id="id-info"></p>
         </div>
         <div>
@@ -308,7 +312,11 @@ kbd{font-family:var(--mono); font-size:11px; border:1px solid var(--rule); borde
         </div>
         <div class="export">
           <b>Entregar respostas</b>
-          <p class="note">Ao terminar, baixe o arquivo de respostas e envie ao professor. Se o download não funcionar (por exemplo, no link online), use "Copiar" e cole num arquivo de texto.</p>
+          <p class="note" id="x-note">Ao terminar, baixe o arquivo de respostas e envie ao professor. Se o download não funcionar (por exemplo, no link online), use "Copiar" e cole num arquivo de texto.</p>
+          <div class="row" id="x-sendrow" hidden>
+            <button class="btn accent" id="x-send">Enviar respostas ao professor</button>
+          </div>
+          <p class="send-st" id="x-sendst" hidden aria-live="polite"></p>
           <div class="row">
             <button class="btn accent" id="x-json">Baixar respostas (.json)</button>
             <button class="btn ghost" id="x-csv">Baixar tentativas (.csv)</button>
@@ -1697,15 +1705,19 @@ function saveState(){try{localStorage.setItem('inv-roteiro-v2',JSON.stringify({R
 function loadState(){try{const o=JSON.parse(localStorage.getItem('inv-roteiro-v2')||'null'); if(o){RI=Math.min(R.length-1,o.RI||0); Object.assign(ANS,o.ANS||{}); st.quadro=o.quadro||[]; if(o.view)st.view=o.view; Object.assign(SHEET,o.SHEET||{}); Object.assign(REPS,o.REPS||{});}}catch(e){}}
 const val=f=>typeof f==='function'?f():f;
 /* ---------- registro de respostas (para análise) ---------- */
-const VERSAO='alem-da-media-v1';
+const VERSAO='alem-da-media-v2';
+const MODULO='alem-da-media';
+/* Endereço do receptor de respostas (Google Apps Script). Vazio = sem envio automático.
+   Preenchido pelo scripts/build_site.py a partir de config/coleta.json. */
+const COLETA_URL=''/*COLETA_URL*/;
 const slug=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 (function(){const seen={}; R.forEach((q,i)=>{let s=slug(q.title); if(seen[s])s+='-'+(i+1); seen[s]=1; q.qid=s;});})();
-const LOG={aluno:'',turma:'',sessao:Math.random().toString(36).slice(2,10),eventos:[],tries:{},enteredAt:Date.now(),lastText:{}};
-try{const o=JSON.parse(localStorage.getItem('inv-log-v1')||'null'); if(o){LOG.aluno=o.aluno||''; LOG.turma=o.turma||''; LOG.eventos=o.eventos||[]; LOG.tries=o.tries||{}; LOG.lastText=o.lastText||{};}}catch(e){}
-function saveLog(){try{localStorage.setItem('inv-log-v1',JSON.stringify({aluno:LOG.aluno,turma:LOG.turma,eventos:LOG.eventos,tries:LOG.tries,lastText:LOG.lastText}));}catch(e){}}
+const LOG={aluno:'',turma:'',curso:'',sessao:Math.random().toString(36).slice(2,10),eventos:[],tries:{},enteredAt:Date.now(),lastText:{},envios:[]};
+try{const o=JSON.parse(localStorage.getItem('inv-log-v1')||'null'); if(o){LOG.aluno=o.aluno||''; LOG.turma=o.turma||''; LOG.curso=o.curso||''; LOG.eventos=o.eventos||[]; LOG.tries=o.tries||{}; LOG.lastText=o.lastText||{}; LOG.envios=o.envios||[];}}catch(e){}
+function saveLog(){try{localStorage.setItem('inv-log-v1',JSON.stringify({aluno:LOG.aluno,turma:LOG.turma,curso:LOG.curso,eventos:LOG.eventos,tries:LOG.tries,lastText:LOG.lastText,envios:LOG.envios}));}catch(e){}}
 function logEv(tipo,extra){
   const q=R[RI]; const now=Date.now();
-  LOG.eventos.push(Object.assign({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',sessao_id:LOG.sessao,data_hora:new Date(now).toISOString(),
+  LOG.eventos.push(Object.assign({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',sessao_id:LOG.sessao,data_hora:new Date(now).toISOString(),
     pergunta_num:RI+1,pergunta_id:q.qid,parte:PARTS[q.part],tipo_pergunta:q.type,tipo_evento:tipo,tentativa_n:'',resposta:'',correta:'',valor_esperado:'',nivel_tabela:'',
     segundos_na_pergunta:Math.round((now-LOG.enteredAt)/100)/10,dados:dataLabel(),metodo:MNAME[st.mode]},extra||{}));
   saveLog(); updateLogInfo();
@@ -1715,7 +1727,7 @@ function flushText(){const q=R[RI]; if(q.type!=='text')return; const a=ANS[RI]; 
 function goStep(i){flushText(); RI=i; LOG.enteredAt=Date.now(); renderRoteiro(true); logEv('entrar');}
 function updateLogInfo(){const e=$('#id-info'); if(!e)return; const n=LOG.eventos.filter(x=>x.tipo_evento==='tentativa'||x.tipo_evento==='resposta_texto'||x.tipo_evento==='previsao').length; e.textContent=`${n} resposta(s) registrada(s) neste navegador.`;}
 /* resumo por pergunta */
-function normEv(){return LOG.eventos.map(e=>Object.assign({},e,{aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||''}));}
+function normEv(){return LOG.eventos.map(e=>Object.assign({},e,{aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||''}));}
 function buildResumo(){
   const ev=normEv(), out=[]; const tempo={};
   const ent=ev.map((e,i)=>({e,i})).filter(o=>o.e.tipo_evento==='entrar');
@@ -1724,7 +1736,7 @@ function buildResumo(){
     const E=ev.filter(e=>e.pergunta_id===q.qid), T=E.filter(e=>['tentativa','resposta_texto','previsao'].includes(e.tipo_evento));
     const firstOk=T.findIndex(e=>e.correta===1);
     const last=[...E].reverse().find(e=>['tentativa','resposta_texto','previsao'].includes(e.tipo_evento));
-    out.push({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',pergunta_num:i+1,pergunta_id:q.qid,titulo:q.title,parte:PARTS[q.part],tipo_pergunta:q.type,
+    out.push({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',pergunta_num:i+1,pergunta_id:q.qid,titulo:q.title,parte:PARTS[q.part],tipo_pergunta:q.type,
       tentativas:T.length,acertou:(q.type==='num'||q.type==='choice')?(firstOk>=0?1:0):'',tentativas_ate_acertar:firstOk>=0?firstOk+1:'',
       acertou_primeira:(q.type==='num'||q.type==='choice')?(T.length?(T[0].correta===1?1:0):''):'',
       dicas:E.filter(e=>e.tipo_evento==='dica').length,viu_comentario:E.some(e=>e.tipo_evento==='comentario')?1:0,
@@ -1733,13 +1745,33 @@ function buildResumo(){
   });
   return out;
 }
-const COLS_EV=['aluno_id','turma','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
-const COLS_RES=['aluno_id','turma','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
+const COLS_EV=['aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
+const COLS_RES=['aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
 function toCSV(rows,cols){const esc=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>esc(r[c])).join(';')).join('\r\n');}
 function fileBase(){const d=new Date().toISOString().slice(0,10); const s=x=>slug(x||'')||'sem'; return `respostas_${s(LOG.turma)}_${s(LOG.aluno||'anonimo')}_${d}`;}
-function exportJSON(){flushText(); return JSON.stringify({versao:VERSAO,exportado_em:new Date().toISOString(),aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',
+function exportObj(){flushText(); return {versao:VERSAO,modulo:MODULO,exportado_em:new Date().toISOString(),aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',
   perguntas:R.map((q,i)=>({num:i+1,id:q.qid,titulo:q.title,parte:PARTS[q.part],tipo:q.type,enunciado:q.ask})),
-  resumo:buildResumo(),eventos:normEv(),quadro_resultados:st.quadro},null,1);}
+  resumo:buildResumo(),eventos:normEv(),quadro_resultados:st.quadro};}
+function exportJSON(){return JSON.stringify(exportObj(),null,1);}
+/* envio automático ao receptor (Google Apps Script) */
+function sendSt(msg,cls){const s=$('#x-sendst'); s.hidden=false; s.className='send-st '+(cls||''); s.innerHTML=msg;}
+const hhmm=d=>d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+async function enviarRespostas(){
+  const btn=$('#x-send'); const o=exportObj(); o.entrega_id=LOG.sessao+'-'+Date.now().toString(36); o.enviado_em=new Date().toISOString();
+  btn.disabled=true; btn.textContent='Enviando…'; sendSt('Enviando suas respostas…','');
+  const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),25000);
+  try{
+    // text/plain evita a consulta prévia (CORS) que o Apps Script não responde
+    const r=await fetch(COLETA_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(o),signal:ctl.signal,redirect:'follow'});
+    const j=await r.json();
+    if(!j||!j.ok) throw new Error((j&&j.erro)||'resposta inesperada');
+    LOG.envios.push({entrega_id:o.entrega_id,em:o.enviado_em,perguntas:j.perguntas_respondidas}); saveLog();
+    sendSt(`✓ Respostas enviadas às ${hhmm(new Date())}: ${j.perguntas_respondidas} pergunta(s) respondida(s). Se continuar respondendo, envie de novo no fim.`,'ok');
+  }catch(e){
+    sendSt('Não foi possível enviar agora (sem internet ou serviço fora do ar). <b>Baixe o arquivo (.json)</b> abaixo e entregue ao professor, ou tente enviar de novo daqui a pouco.','bad');
+    $('#x-json').classList.add('accent'); $('#x-json').classList.remove('ghost');
+  }finally{clearTimeout(tm); btn.disabled=false; btn.textContent='Enviar respostas ao professor';}
+}
 function download(name,text,mime){
   try{const blob=new Blob([(mime.includes('csv')?'﻿':'')+text],{type:mime}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},1000);}catch(e){}
 }
@@ -1811,10 +1843,18 @@ function setView(v){
   renderHist(); updateStats(); saveState();
 }
 $('#v-aula').onclick=()=>setView('aula'); $('#v-full').onclick=()=>setView('full');
-$('#id-aluno').value=LOG.aluno; $('#id-turma').value=LOG.turma; updateLogInfo();
+$('#id-aluno').value=LOG.aluno; $('#id-turma').value=LOG.turma; $('#id-curso').value=LOG.curso; updateLogInfo();
+$('#id-curso').addEventListener('change',e=>{LOG.curso=e.target.value; saveLog();});
+if(COLETA_URL){
+  $('#x-sendrow').hidden=false; $('#x-json').classList.remove('accent'); $('#x-json').classList.add('ghost');
+  $('#x-note').textContent='Ao terminar, clique em "Enviar respostas ao professor". Se o envio falhar, baixe o arquivo (.json) e entregue ao professor.';
+  if(LOG.envios.length){const u=LOG.envios[LOG.envios.length-1]; sendSt(`Último envio: ${new Date(u.em).toLocaleString('pt-BR')}.`,'ok');}
+  $('#x-send').onclick=()=>{if(needId())return; enviarRespostas();};
+}
 $('#id-aluno').addEventListener('input',e=>{LOG.aluno=e.target.value.trim(); saveLog();});
 $('#id-turma').addEventListener('input',e=>{LOG.turma=e.target.value.trim(); saveLog();});
-const needId=()=>{if(!LOG.aluno){showFb('Preencha seu código no alto do roteiro antes de baixar.','bad'); $('#id-aluno').focus(); return true;} return false;};
+const needId=()=>{if(!LOG.aluno){showFb('Preencha seu código no alto do roteiro antes de entregar.','bad'); $('#id-aluno').focus(); return true;}
+  if(!LOG.curso){showFb('Escolha seu curso no alto do roteiro antes de entregar.','bad'); $('#id-curso').focus(); return true;} return false;};
 $('#x-json').onclick=()=>{if(needId())return; download(fileBase()+'.json',exportJSON(),'application/json'); showFb('Arquivo gerado: '+fileBase()+'.json','ok');};
 $('#x-csv').onclick=()=>{if(needId())return; flushText(); download(fileBase()+'_tentativas.csv',toCSV(normEv(),COLS_EV),'text/csv'); showFb('Arquivo gerado: '+fileBase()+'_tentativas.csv','ok');};
 $('#x-copy').onclick=()=>{if(needId())return; copyOut(exportJSON(),'JSON das respostas');};

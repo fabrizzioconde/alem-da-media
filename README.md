@@ -12,6 +12,19 @@ Roteiro interativo de estatística sobre **média, variação e risco**, com reg
 | `painel-professor.html` | Junta os arquivos `.json` dos alunos e gera tabelas e planilhas. |
 | `exemplos/` | 8 arquivos **fictícios** (turma "EXEMPLO") para testar o painel. |
 | `LEIA-ME.txt` | Instruções para aluno e professor (versão em texto simples). |
+| `coleta/` | Script do Google Apps Script que recebe as respostas numa planilha, e o passo a passo para implantá-lo. |
+| `config/` | Endereço da coleta (`coleta.json`) e lista de módulos do site (`modulos.json`). |
+| `scripts/build_site.py` | Gera o site dos alunos em `dist/` (um módulo por pasta, com o endereço de coleta embutido). |
+
+## Site dos alunos e coleta automática
+
+Os alunos usam os widgets pelo GitHub Pages, a partir de um repositório público separado (`alem-da-media-site`) que contém só o site gerado. Este repositório, com o código-fonte e a documentação, continua privado.
+
+1. Implante a coleta seguindo `coleta/COMO-IMPLANTAR.md` e coloque o URL em `config/coleta.json`.
+2. Gere o site: `python3 scripts/build_site.py`.
+3. Publique o conteúdo de `dist/` no repositório `alem-da-media-site`.
+
+No widget, o botão **Enviar respostas ao professor** manda o mesmo JSON que seria baixado. Se o envio falhar, o widget orienta o aluno a baixar o arquivo. Sem URL configurado, o botão não aparece e o widget funciona como antes (só download).
 
 ## Uso rápido
 
@@ -36,3 +49,4 @@ Os dados ficam só no navegador do aluno até ele baixar o arquivo. Prefira cód
 ## Histórico
 
 - **25/09/2026** — versão 1 (pacote `alem-da-media-pacote.zip`).
+- **01/11/2026** — versão 2 do registro: campo Curso, identificação do módulo, envio automático para planilha do Google; painel com filtro por curso; gerador do site.

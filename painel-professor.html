@@ -80,7 +80,7 @@ code{font-family:var(--mono); font-size:12.5px}
   <section class="panel" id="out" hidden>
     <div class="row" style="justify-content:space-between">
       <h2>2. Resultados</h2>
-      <div class="row"><label for="turma" class="note">Turma</label><select id="turma"></select></div>
+      <div class="row"><label for="curso" class="note">Curso</label><select id="curso"></select><label for="turma" class="note">Turma</label><select id="turma"></select></div>
     </div>
     <div class="cards" id="cards"></div>
     <div class="row">
@@ -132,7 +132,7 @@ const pct=v=>Number.isFinite(v)?nf(v*100,0)+'%':'—';
 const med=a=>{a=a.filter(Number.isFinite).sort((x,y)=>x-y); if(!a.length)return NaN; const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2;};
 const mean=a=>{a=a.filter(Number.isFinite); return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let FILES={}, PERG=[], turmaSel='';
+let FILES={}, PERG=[], turmaSel='', cursoSel='';
 
 function addFile(name,text){
   let d; try{d=JSON.parse(text);}catch(e){warn(`${name}: não é um JSON válido.`);return;}
@@ -151,6 +151,9 @@ async function handle(list){
   const turmas=[...new Set(Object.values(FILES).map(d=>d.turma||'(sem turma)'))].sort();
   $('#turma').innerHTML='<option value="">Todas</option>'+turmas.map(t=>`<option>${esc(t)}</option>`).join('');
   $('#turma').value=turmas.includes(turmaSel)?turmaSel:'';
+  const cursos=[...new Set(Object.values(FILES).map(d=>d.curso||'(sem curso)'))].sort();
+  $('#curso').innerHTML='<option value="">Todos</option>'+cursos.map(t=>`<option>${esc(t)}</option>`).join('');
+  $('#curso').value=cursos.includes(cursoSel)?cursoSel:'';
   $('#out').hidden=n===0; $('#exp').hidden=n===0; render();
 }
 $('#files').addEventListener('change',e=>handle(e.target.files));
@@ -159,9 +162,10 @@ const dz=$('#drop');
 ['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault(); dz.classList.remove('over');}));
 dz.addEventListener('drop',e=>handle(e.dataTransfer.files));
 $('#turma').addEventListener('change',e=>{turmaSel=e.target.value; render();});
+$('#curso').addEventListener('change',e=>{cursoSel=e.target.value; render();});
 
-function data(){return Object.values(FILES).filter(d=>!turmaSel||(d.turma||'(sem turma)')===turmaSel);}
-function rows(){return data().flatMap(d=>d.resumo);}
+function data(){return Object.values(FILES).filter(d=>(!turmaSel||(d.turma||'(sem turma)')===turmaSel)&&(!cursoSel||(d.curso||'(sem curso)')===cursoSel));}
+function rows(){return data().flatMap(d=>d.resumo.map(r=>r.curso!=null?r:Object.assign({curso:d.curso||''},r)));}
 function statsPerg(){
   const R=rows();
   return PERG.map(p=>{
@@ -196,9 +200,9 @@ function render(){
       <td>${Number.isFinite(s.acerto1)?`<span class="bar${s.acerto1<0.5?' low':''}" style="width:${Math.round(s.acerto1*60)}px"></span>`:''}${pct(s.acerto1)}</td>
       <td>${nf(s.tentMedia,2)}</td><td>${nf(s.tentMed,1)}</td><td>${nf(s.tentMax,0)}</td><td>${nf(s.ateAcertar,2)}</td><td>${pct(s.dica)}</td><td>${Number.isFinite(s.tempoMed)?nf(s.tempoMed,0)+' s':'—'}</td></tr>`).join('');
   // por aluno
-  $('#t-aluno').innerHTML='<tr><th>Aluno</th><th>Turma</th><th>Respondidas</th><th>Acertos</th><th>Acerto na 1ª</th><th>Tentativas</th><th>Dicas</th><th>Tabelas corretas</th><th>Tempo total</th><th>Arquivo</th></tr>'+
+  $('#t-aluno').innerHTML='<tr><th>Aluno</th><th>Turma</th><th>Curso</th><th>Respondidas</th><th>Acertos</th><th>Acerto na 1ª</th><th>Tentativas</th><th>Dicas</th><th>Tabelas corretas</th><th>Tempo total</th><th>Arquivo</th></tr>'+
     D.sort((a,b)=>String(a.aluno_id).localeCompare(String(b.aluno_id))).map(d=>{const r=d.resumo, g=r.filter(x=>(x.tipo_pergunta==='num'||x.tipo_pergunta==='choice')&&x.tentativas>0);
-      return `<tr><td>${esc(d.aluno_id)}</td><td>${esc(d.turma)}</td><td>${r.filter(x=>x.tentativas>0).length}</td><td>${g.filter(x=>x.acertou===1).length} / ${g.length}</td><td>${pct(g.length?g.filter(x=>x.acertou_primeira===1).length/g.length:NaN)}</td>
+      return `<tr><td>${esc(d.aluno_id)}</td><td>${esc(d.turma)}</td><td>${esc(d.curso||'')}</td><td>${r.filter(x=>x.tentativas>0).length}</td><td>${g.filter(x=>x.acertou===1).length} / ${g.length}</td><td>${pct(g.length?g.filter(x=>x.acertou_primeira===1).length/g.length:NaN)}</td>
       <td>${r.reduce((a,x)=>a+x.tentativas,0)}</td><td>${r.reduce((a,x)=>a+x.dicas,0)}</td><td>${r.filter(x=>x.tabela_correta===1).length}</td><td>${nf(r.reduce((a,x)=>a+(x.tempo_total_s||0),0)/60,0)} min</td><td class="note">${esc(d._file)}</td></tr>`;}).join('');
   // selects
   const gq=PERG.filter(p=>p.tipo==='num'||p.tipo==='choice'), tq=PERG.filter(p=>p.tipo==='text'||p.tipo==='predict');
@@ -229,13 +233,13 @@ window.addEventListener('resize',()=>{if(!$('#v-dist').hidden)renderDist();});
 /* exportação */
 function toCSV(rows,cols){const e=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>e(r[c])).join(';')).join('\r\n');}
 function dl(name,text){const b=new Blob(['﻿'+text],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
-const tag=()=>(turmaSel?turmaSel.replace(/[^\w-]+/g,'_')+'_':'')+new Date().toISOString().slice(0,10);
-const COLS_RES=['aluno_id','turma','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
-const COLS_EV=['aluno_id','turma','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
+const tag=()=>[cursoSel,turmaSel].filter(Boolean).map(x=>x.replace(/[^\w-]+/g,'_')+'_').join('')+new Date().toISOString().slice(0,10);
+const COLS_RES=['aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
+const COLS_EV=['aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
 $('#e-res').onclick=()=>dl(`resumo_aluno_pergunta_${tag()}.csv`,toCSV(rows(),COLS_RES));
-$('#e-ev').onclick=()=>dl(`eventos_${tag()}.csv`,toCSV(data().flatMap(d=>d.eventos),COLS_EV));
-$('#e-mat').onclick=()=>{const D=data(); const cols=['aluno_id','turma',...PERG.map(p=>'q'+String(p.num).padStart(2,'0')+'_'+p.id)];
-  const rs=D.map(d=>{const o={aluno_id:d.aluno_id,turma:d.turma}; PERG.forEach(p=>{const r=d.resumo.find(x=>x.pergunta_id===p.id); o['q'+String(p.num).padStart(2,'0')+'_'+p.id]=r?r.tentativas:'';}); return o;});
+$('#e-ev').onclick=()=>dl(`eventos_${tag()}.csv`,toCSV(data().flatMap(d=>d.eventos.map(e=>e.curso!=null?e:Object.assign({curso:d.curso||''},e))),COLS_EV));
+$('#e-mat').onclick=()=>{const D=data(); const cols=['aluno_id','turma','curso',...PERG.map(p=>'q'+String(p.num).padStart(2,'0')+'_'+p.id)];
+  const rs=D.map(d=>{const o={aluno_id:d.aluno_id,turma:d.turma,curso:d.curso||''}; PERG.forEach(p=>{const r=d.resumo.find(x=>x.pergunta_id===p.id); o['q'+String(p.num).padStart(2,'0')+'_'+p.id]=r?r.tentativas:'';}); return o;});
   dl(`matriz_tentativas_${tag()}.csv`,toCSV(rs,cols));};
 $('#e-perg').onclick=()=>{const S=statsPerg().map(s=>({num:s.num,id:s.id,titulo:s.titulo,parte:s.parte,tipo:s.tipo,respondentes:s.respondentes,alunos:s.alunos,prop_acerto:round(s.acerto),prop_acerto_1a:round(s.acerto1),tentativas_media:round(s.tentMedia),tentativas_mediana:s.tentMed,tentativas_max:s.tentMax,ate_acertar_media:round(s.ateAcertar),prop_dica:round(s.dica),tempo_mediano_s:s.tempoMed}));
   dl(`estatisticas_por_pergunta_${tag()}.csv`,toCSV(S,Object.keys(S[0]||{})));};
