@@ -1434,6 +1434,8 @@ function shCheck(){
 /* ---------- um número para representar todos ---------- */
 const REPS={};
 function repState(){const q=R[RI],k=RI+':'+st.preset; if(!REPS[k]){const lo=st.xs[0],hi=st.xs[st.n-1]; const pi=R.findIndex(x=>x.id==='palpite'); const pv=parseFrac(ANS[pi]&&ANS[pi].v); REPS[k]={c:(st.preset==='onibus'&&Number.isFinite(pv))?pv:+(lo+(hi-lo)*0.2).toFixed(1),loss:q.rep==='abs'?'abs':'sq'};} return REPS[k];}
+function mediaDe(id){const d=PRESETS.find(p=>p.id===id).data; return d.reduce((a,b)=>a+b,0)/d.length;}
+function perdaDe(id,c){return PRESETS.find(p=>p.id===id).data.reduce((s,v)=>s+(v-c)**2,0);}
 function lossAt(c,t){const x=st.raw;let s=0;for(const v of x)s+=t==='abs'?Math.abs(v-c):(v-c)**2;return s;}
 function renderRep(){
   const q=R[RI], box=$('#r-rep'); if(!q.rep||!st.raw){box.hidden=true; box.innerHTML=''; return;}
@@ -1635,13 +1637,13 @@ const BANCO=[
   ctx:'Imagine que alguém pergunta "quanto tempo leva o ônibus?" e você só pode responder com um número.',
   ask:'Que tempo único você informaria para o ônibus? Escreva seu palpite (em minutos).',type:'predict',unit:'min',
   com:'Guarde seu palpite. Na próxima pergunta você mede quanto se perde ao trocar as 10 viagens por esse único número.'},
- {part:1,ativ:'A1',title:'Quanto se perde na troca?',rep:'sq',enter:()=>{loadPresetById('onibus');},
+ {part:1,ativ:'A1',title:'Quanto se perde na troca?',rep:'sq',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ver o ônibus',ds:'onibus',f:()=>{loadPresetById('onibus');}},{l:'Ver o metrô',ds:'metro',f:()=>{loadPresetById('metro');}}],
   ctx:'Ao responder com um número c, cada viagem real x fica com um erro x − c. Para medir a perda total, somamos os erros ao quadrado, Σ(x − c)², para que erros para cima e para baixo não se cancelem.',
-  ask:'Arraste c até a perda total ficar a menor possível. Em que valor de c isso acontece?',type:'num',unit:'min',ans:()=>st.mu,tol:0.3,
+  ask:'Arraste c até a perda total ficar a menor possível. Em que valor de c isso acontece?',type:'num',unit:'min',ans:()=>mediaDe('onibus'),tol:0.3,
   hint:'Procure o ponto mais baixo da curva de baixo.',
-  com:()=>{const i=R.findIndex(x=>x.id==='palpite'),pv=parseFrac(ANS[i]&&ANS[i].v);return (Number.isFinite(pv)?`Com o seu palpite (c = ${nf(pv,1)}), a perda total seria ${nf(lossAt(pv,'sq'),1)}. `:'')+`O mínimo fica em c = ${nf(st.mu,2)}, que é a média, com perda ${nf(lossAt(st.mu,'sq'),1)}. Nenhum outro número perde menos: é essa propriedade que faz da média a representante "oficial" de uma amostra.`;}},
- {part:1,ativ:'A1',title:'A perda mínima tem nome',rep:'sq',enter:()=>{loadPresetById('onibus');},
-  ask:'Com c na média, quanto vale a perda média, Σ(x − c)² ÷ n? Veja a tabela abaixo do gráfico.',type:'num',ans:()=>st.sd**2,tol:0.5,
+  com:()=>{const i=R.findIndex(x=>x.id==='palpite'),pv=parseFrac(ANS[i]&&ANS[i].v),m=mediaDe('onibus');return (Number.isFinite(pv)?`Com o seu palpite (c = ${nf(pv,1)}), a perda total do ônibus seria ${nf(perdaDe('onibus',pv),1)}. `:'')+`O mínimo fica em c = ${nf(m,2)}, que é a média, com perda ${nf(perdaDe('onibus',m),1)}. Nenhum outro número perde menos: é essa propriedade que faz da média a representante "oficial" de uma amostra. Veja também o metrô: o mínimo fica na média dele, 40, e a perda é bem menor.`;}},
+ {part:1,ativ:'A1',title:'A perda mínima tem nome',rep:'sq',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ver o ônibus',ds:'onibus',f:()=>{loadPresetById('onibus');}},{l:'Ver o metrô',ds:'metro',f:()=>{loadPresetById('metro');}}],
+  ask:'No ônibus, com c na média, quanto vale a perda média, Σ(x − c)² ÷ n? Veja a tabela abaixo do gráfico.',type:'num',ans:()=>perdaDe('onibus',mediaDe('onibus'))/10,tol:0.5,
   hint:'Coloque c exatamente na média (digite o valor na caixa ao lado do controle).',
   com:'É a variância! A variância é a perda média de trocar cada viagem pela média, e o desvio-padrão, √554 ≈ 23,5 min, é o erro típico dessa troca. Quem diz "o ônibus leva 44 min" erra, tipicamente, cerca de 23 minutos para mais ou para menos.'},
  {part:1,ativ:'A1',title:'E no metrô?',rep:'sq',enter:()=>{loadPresetById('metro');},
@@ -1897,7 +1899,7 @@ function renderRoteiro(runEnter){
     $('#enun-body').innerHTML=`<div class="enun-box"><b>${E.box}</b><p>${E.txt}</p></div><p class="enun-d">${E.dados}</p><ul>${E.linhas.map(([a,b])=>`<li><b>${a}:</b> <span class="mono">[${b}]</span></li>`).join('')}</ul><p class="enun-q">${E.q}</p>`;}
   else en.hidden=true;
   const ctx=$('#r-ctx'); ctx.hidden=!q.ctx; ctx.textContent=q.ctx||'';
-  const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; if(a.ds){b.dataset.ds=a.ds; b.classList.add('ds');} b.onclick=()=>{if(st.busy)return; a.f(); marcaConjunto(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
+  const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; if(a.ds){b.dataset.ds=a.ds; b.classList.add('ds');} b.onclick=()=>{if(st.busy)return; a.f(); if(a.ds){renderRep(); renderSheet();} marcaConjunto(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
   marcaConjunto();
   $('#r-ask').textContent=q.ask;
   const inp=$('#r-input'), a=ANS[RI]||{}; inp.innerHTML='';
