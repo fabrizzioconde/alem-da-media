@@ -64,3 +64,4 @@ Os dados ficam só no navegador do aluno até ele baixar o arquivo. Prefira cód
 - **02/11/2026** — Calculadora em todos os módulos, com registro das contas.
 - **02/11/2026** — Tela de entrada com identificação (uma vez, compartilhada entre os módulos do site); depois, uma linha compacta com "alterar".
 - **02/11/2026** — Ferramentas por pergunta no Módulo 1: a seção de dados sai, e os tijolinhos só aparecem nas perguntas que os usam.
+- **02/11/2026** — Diagnóstico do Módulo 1 passa a ser conceitual (nenhuma conta antes de trabalhar a média); verificação com pergunta conceitual equivalente e, por último, o cálculo do desvio-padrão; opção "Ainda não sei" no diagnóstico e na verificação.

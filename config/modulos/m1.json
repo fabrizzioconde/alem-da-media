@@ -7,7 +7,7 @@
   "so_aula": true,
   "perguntas": [
     "m1-d1",
-    "m1-d2",
+    "m1-d2c",
     "metro-a-media",
     "onibus-a-media",
     "a-media-basta",
@@ -29,6 +29,7 @@
     "mesma-amplitude-riscos-diferentes",
     "amplitude-ou-desvio-padrao",
     "m1-v1",
+    "m1-v2c",
     "m1-v2",
     "m1-e1",
     "m1-e2",
