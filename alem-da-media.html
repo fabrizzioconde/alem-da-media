@@ -188,6 +188,18 @@ tr.hi td{background:var(--usoft)}
 body.aula .adv{display:none!important}
 .idcard{display:grid; grid-template-columns:minmax(0,1fr) 120px 240px; gap:10px; align-items:end; padding:10px 12px; border:1px dashed var(--rule); border-radius:10px}
 .idcard .note{grid-column:1/-1}
+.id-acoes{grid-column:1/-1; display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.id-acoes .note{color:var(--u)}
+.id-linha{display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; font-size:13.5px; color:var(--muted); padding:6px 2px}
+.id-linha b{color:var(--ink); font-family:var(--mono); font-weight:500}
+.linklike{font:inherit; border:0; background:transparent; color:var(--curve); text-decoration:underline; cursor:pointer; padding:0}
+.entrada{display:grid; gap:12px; padding:14px 16px; border:1px solid var(--rule); border-radius:10px; background:var(--paper)}
+.entrada p{margin:0; font-size:15px}
+.entrada .row{gap:10px}
+.entrada .aviso{font-size:13.5px; color:var(--u)}
+/* antes da identificação, só o cartão de entrada aparece */
+body.sem-id .r-card>:not(#idcard):not(#entrada){display:none!important}
+body.sem-id .quadro, body.sem-id .layout, body.sem-id #builder, body.sem-id .wrap>details.fold, body.sem-id #fab{display:none!important}
 #id-curso{font-family:var(--sans); font-size:14px}
 @media (max-width:720px){ .idcard{grid-template-columns:1fr} }
 .send-st{font-size:13.5px; margin:0; padding:8px 12px; border-radius:8px; background:var(--paper)}
@@ -322,7 +334,10 @@ kbd{font-family:var(--mono); font-size:11px; border:1px solid var(--rule); borde
           <div class="field"><label for="id-turma">Turma</label><input type="text" id="id-turma" autocomplete="off"></div>
           <div class="field"><label for="id-curso">Curso</label><select id="id-curso"><option value="">Escolha…</option><option>Licenciatura em Matemática</option><option>Bacharelado em Matemática</option><option>Outro</option></select></div>
           <p class="note" id="id-info"></p>
+          <div class="id-acoes"><button class="btn accent" id="id-ok">Começar</button><span class="note" id="id-msg" aria-live="polite"></span></div>
         </div>
+        <div class="entrada" id="entrada" hidden></div>
+        <div class="id-linha" id="id-linha" hidden></div>
         <div>
           <div class="r-parts" id="r-parts" role="group" aria-label="Partes do roteiro"></div>
           <div class="r-dots" id="r-dots" role="group" aria-label="Perguntas"></div>
@@ -1978,7 +1993,7 @@ $('#x-csv').onclick=()=>{if(needId())return; flushText(); download(fileBase()+'_
 $('#x-copy').onclick=()=>{if(needId())return; copyOut(exportJSON(),'JSON das respostas');};
 let resetArm=0; $('#x-reset').onclick=()=>{
   if(Date.now()-resetArm>4000){resetArm=Date.now(); $('#x-reset').textContent='Clique de novo para apagar tudo'; setTimeout(()=>{$('#x-reset').textContent='Novo aluno neste computador';},4000); showFb('Isso apaga as respostas guardadas neste navegador. Baixe o arquivo antes, se ainda não baixou.','bad'); return;}
-  try{localStorage.removeItem(SK('inv-log-v1')); localStorage.removeItem(SK('inv-roteiro-v2'));}catch(e){} location.reload();
+  try{localStorage.removeItem(SK('inv-log-v1')); localStorage.removeItem(SK('inv-roteiro-v2'));}catch(e){} idApaga(); location.reload();
 };
 
 let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{renderCDF();renderHist();renderBuilder();renderMonth();},120);});
@@ -2036,6 +2051,55 @@ if(!(MOD&&MOD.calculadora===false)){
   $('#calc-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(); calcIgual();} if(e.key==='Escape') calcAbre(false);});
   $('#calc-use').onclick=()=>{if(CALC.last!=null) calcUsa(CALC.last);};
 } else { $('#calc-fab').hidden=true; }
+/* ---------- identificação: tela de entrada, linha compacta, compartilhada entre módulos ---------- */
+const IDK='alem-da-media:identidade';
+function idLe(){try{return JSON.parse(localStorage.getItem(IDK)||'null');}catch(e){return null;}}
+function idGrava(){try{localStorage.setItem(IDK,JSON.stringify({aluno:LOG.aluno,turma:LOG.turma,curso:LOG.curso}));}catch(e){}}
+function idApaga(){try{localStorage.removeItem(IDK);}catch(e){}}
+function idCampos(){$('#id-aluno').value=LOG.aluno; $('#id-turma').value=LOG.turma; $('#id-curso').value=LOG.curso;}
+function temRespostas(){return LOG.eventos.some(e=>['tentativa','resposta_texto','previsao','escala'].includes(e.tipo_evento));}
+function idLinha(){
+  const l=$('#id-linha'); l.textContent='';
+  const add=(t,tag)=>{const e=document.createElement(tag||'span'); e.textContent=t; l.appendChild(e); return e;};
+  add('Você: '); add(LOG.aluno,'b'); add('· Turma '+(LOG.turma||'—')); add('· '+LOG.curso);
+  const b=add('alterar','button'); b.className='linklike'; b.onclick=()=>idForm(true);
+}
+function idForm(editando){
+  $('#entrada').hidden=true; $('#idcard').hidden=false; $('#id-linha').hidden=true; $('#id-msg').textContent='';
+  $('#id-ok').textContent=editando?'Pronto':'Começar'; idCampos(); $('#id-aluno').focus();
+}
+function idComeca(){
+  LOG.aluno=$('#id-aluno').value.trim(); LOG.turma=$('#id-turma').value.trim(); LOG.curso=$('#id-curso').value;
+  if(!LOG.aluno){$('#id-msg').textContent='Preencha o código combinado com o professor.'; $('#id-aluno').focus(); return;}
+  if(!LOG.curso){$('#id-msg').textContent='Escolha o seu curso.'; $('#id-curso').focus(); return;}
+  const primeira=document.body.classList.contains('sem-id');
+  saveLog(); idGrava(); document.body.classList.remove('sem-id');
+  $('#idcard').hidden=true; $('#entrada').hidden=true; idLinha(); $('#id-linha').hidden=false;
+  if(primeira){logEv('inicio'); renderRoteiro(false); go('#roteiro');} else logEv('identificacao_alterada',{resposta:LOG.aluno});
+}
+function idEntrada(){
+  document.body.classList.add('sem-id');
+  const salvo=LOG.aluno?{aluno:LOG.aluno,turma:LOG.turma,curso:LOG.curso}:idLe();
+  if(!(salvo&&salvo.aluno)) return idForm(false);
+  /* alguém já usou este navegador: confirmar quem está aqui */
+  const e=$('#entrada'); e.hidden=false; $('#idcard').hidden=true; e.textContent='';
+  const p=document.createElement('p'); p.append('Você é '); const b=document.createElement('b'); b.textContent=salvo.aluno; p.append(b, ` (${salvo.turma?'turma '+salvo.turma+', ':''}${salvo.curso||'curso não informado'})?`); e.appendChild(p);
+  const row=document.createElement('div'); row.className='row'; e.appendChild(row);
+  const sim=document.createElement('button'); sim.className='btn accent'; sim.textContent='Sim, continuar'; row.appendChild(sim);
+  const nao=document.createElement('button'); nao.className='btn ghost'; nao.textContent='Não, sou outra pessoa'; row.appendChild(nao);
+  const av=document.createElement('p'); av.className='aviso'; av.hidden=true; e.appendChild(av);
+  sim.onclick=()=>{LOG.aluno=salvo.aluno; LOG.turma=salvo.turma||''; LOG.curso=salvo.curso||''; idCampos(); if(!LOG.curso) return idForm(false); idComeca();};
+  let armado=0;
+  nao.onclick=()=>{
+    if(LOG.aluno&&temRespostas()){
+      if(Date.now()-armado>6000){armado=Date.now(); av.hidden=false; av.textContent=`As respostas de ${LOG.aluno} neste módulo serão apagadas deste navegador. Se ${LOG.aluno} ainda não enviou, peça para enviar antes. Clique de novo para confirmar.`; nao.textContent='Confirmar: apagar e começar'; return;}
+      try{localStorage.removeItem(SK('inv-log-v1')); localStorage.removeItem(SK('inv-roteiro-v2'));}catch(err){} idApaga(); location.reload(); return;
+    }
+    LOG.aluno=''; LOG.turma=''; LOG.curso=''; saveLog(); idApaga(); idForm(false);
+  };
+}
+$('#id-ok').onclick=idComeca;
+['#id-aluno','#id-turma'].forEach(sel=>$(sel).addEventListener('keydown',ev=>{if(ev.key==='Enter')idComeca();}));
 /* apresentação do módulo (título, abertura, painéis ocultos) */
 if(MOD){
   if(MOD.titulo){document.title=MOD.titulo; $('header h1').textContent=MOD.titulo;}
@@ -2050,7 +2114,7 @@ if(MOD&&MOD.so_aula) st.view='aula';
 loadPreset(PRESETS[0]);
 document.body.classList.toggle('aula',st.view==='aula');
 setView(st.view); renderQuadro(); renderMonth();
-renderRoteiro(true); LOG.enteredAt=Date.now(); logEv('entrar');
+renderRoteiro(true); LOG.enteredAt=Date.now(); logEv('entrar'); idEntrada();
 })();
 </script>
 

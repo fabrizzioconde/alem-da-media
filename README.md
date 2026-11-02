@@ -62,4 +62,5 @@ Os dados ficam só no navegador do aluno até ele baixar o arquivo. Prefira cód
 - **01/11/2026** — versão 2 do registro: campo Curso, identificação do módulo, envio automático para planilha do Google; painel com filtro por curso; gerador do site.
 - **01/11/2026** — Módulo 1 ("A ilusão da média"), gerado do mesmo arquivo-fonte: perguntas de diagnóstico, verificação e escala; painel do professor separa módulos.
 - **02/11/2026** — Calculadora em todos os módulos, com registro das contas.
+- **02/11/2026** — Tela de entrada com identificação (uma vez, compartilhada entre os módulos do site); depois, uma linha compacta com "alterar".
 - **02/11/2026** — Ferramentas por pergunta no Módulo 1: a seção de dados sai, e os tijolinhos só aparecem nas perguntas que os usam.
