@@ -1436,16 +1436,23 @@ const REPS={};
 function repState(){const q=R[RI],k=RI+':'+st.preset; if(!REPS[k]){const lo=st.xs[0],hi=st.xs[st.n-1]; const pi=R.findIndex(x=>x.id==='palpite'); const pv=parseFrac(ANS[pi]&&ANS[pi].v); REPS[k]={c:(st.preset==='onibus'&&Number.isFinite(pv))?pv:+(lo+(hi-lo)*0.2).toFixed(1),loss:q.rep==='abs'?'abs':'sq'};} return REPS[k];}
 function mediaDe(id){const d=PRESETS.find(p=>p.id===id).data; return d.reduce((a,b)=>a+b,0)/d.length;}
 function perdaDe(id,c){return PRESETS.find(p=>p.id===id).data.reduce((s,v)=>s+(v-c)**2,0);}
+/* Faixa comum do gráfico da perda: quando a pergunta alterna conjuntos (botões com ds), os eixos x e y são os mesmos para todos, para que a altura do fundo da curva seja comparável. */
+function repFaixa(t){const q=R[RI]; const ids=[...new Set((q.acts||[]).filter(a=>a.ds).map(a=>a.ds))];
+  const conj=ids.length>1?ids.map(id=>PRESETS.find(p=>p.id===id).data):[st.raw];
+  const tudo=conj.flat(); const lo0=Math.min(...tudo),hi0=Math.max(...tudo),pad=Math.max(1,(hi0-lo0)*0.1),lo=lo0-pad,hi=hi0+pad;
+  const per=(d,c)=>d.reduce((s,v)=>s+(t==='abs'?Math.abs(v-c):(v-c)**2),0)/d.length;
+  let fmax=0; for(const d of conj) for(let i=0;i<=160;i++) fmax=Math.max(fmax,per(d,lo+(hi-lo)*i/160));
+  return {lo,hi,fmax:fmax*1.08,comum:ids.length>1};}
 function lossAt(c,t){const x=st.raw;let s=0;for(const v of x)s+=t==='abs'?Math.abs(v-c):(v-c)**2;return s;}
 function renderRep(){
   const q=R[RI], box=$('#r-rep'); if(!q.rep||!st.raw){box.hidden=true; box.innerHTML=''; return;}
   box.hidden=false; const S=repState();
-  const lo=st.xs[0],hi=st.xs[st.n-1],pad=Math.max(1,(hi-lo)*0.1);
+  const FX=repFaixa(S.loss), lo=FX.lo, hi=FX.hi, pad=0;
   const nmR=nomeConjunto();
   box.innerHTML=`<div class="sh-head"><b>Um número para representar todos${nmR?' · '+nmR:''}</b>
     <div class="seg sh-lv" role="group" aria-label="Tipo de perda"><button data-l="sq" aria-pressed="${S.loss==='sq'}">Perda (x − c)²</button><button data-l="abs" aria-pressed="${S.loss==='abs'}"${q.rep==='abs'?'':' hidden'}>Perda |x − c|</button></div></div>
     <p class="sh-dados">Dados${nmR?' · '+nmR:''}: <span class="mono">${dadosTexto()}</span></p>
-    <p class="note">Troque todos os dados por um único número c. Cada barra magenta é o erro dessa troca; a curva de baixo mostra a perda média para cada c. Arraste o controle ou clique no gráfico.</p>
+    <p class="note">Troque todos os dados por um único número c. Cada barra magenta é o erro dessa troca; a curva de baixo mostra a perda média para cada c. Arraste o controle ou clique no gráfico.${FX.comum?' Os eixos são os mesmos para os dois conjuntos, para comparar as alturas das curvas.':''}</p>
     <div class="row"><label for="rep-c">c =</label><input type="range" id="rep-c" min="${(lo-pad).toFixed(1)}" max="${(hi+pad).toFixed(1)}" step="0.1" value="${S.c}" style="flex:1;min-width:160px"><input type="text" id="rep-cv" inputmode="decimal" value="${nf(S.c,1)}" aria-label="Valor de c" style="width:80px"></div>
     <div class="chart"><svg id="rep-svg" role="img" aria-label="Erros de trocar cada dado por c e curva da perda"></svg></div>
     <div class="table-wrap"><table id="rep-t"></table></div>`;
@@ -1457,12 +1464,12 @@ function renderRep(){
 }
 function drawRep(){
   const RS=repState(), svg=$('#rep-svg'), x=st.raw, n=x.length, t=RS.loss;
-  const lo0=st.xs[0],hi0=st.xs[st.n-1],pad=Math.max(1,(hi0-lo0)*0.1),lo=lo0-pad,hi=hi0+pad;
+  const FX=repFaixa(t),lo=FX.lo,hi=FX.hi;
   const W=Math.max(300,svg.parentNode.clientWidth), L=44,Rm=14,T=10,rowH=Math.max(12,Math.min(18,190/n)),H1=rowH*n+8,gap=30,H2=150,B=28;
   const top0=T, bot0=T+H1+gap, H=bot0+H2+B; svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.textContent='';
   const sx=v=>L+(v-lo)/(hi-lo)*(W-L-Rm);
   const f=c=>lossAt(c,t)/n; const cs=[]; for(let i=0;i<=160;i++)cs.push(lo+(hi-lo)*i/160);
-  const fmax=Math.max(...cs.map(f))*1.08, syB=v=>bot0+H2-v/fmax*H2;
+  const fmax=FX.fmax, syB=v=>bot0+H2-v/fmax*H2;
   const g=S('g',null,svg);
   for(const v of niceTicks(lo,hi,Math.max(4,Math.floor(W/90)))){S('line',{x1:sx(v),x2:sx(v),y1:top0,y2:bot0+H2,class:'gridline'},g);const tx=S('text',{x:sx(v),y:bot0+H2+16,'text-anchor':'middle'},g);tx.textContent=nf(v,2);}
   for(const v of niceTicks(0,fmax,3)){S('line',{x1:L,x2:W-Rm,y1:syB(v),y2:syB(v),class:'gridline'},g);const tx=S('text',{x:L-6,y:syB(v)+4,'text-anchor':'end'},g);tx.textContent=nf(v,1);}
@@ -1473,6 +1480,7 @@ function drawRep(){
   S('line',{x1:L,x2:W-Rm,y1:bot0+H2,y2:bot0+H2,class:'axis'},g); S('line',{x1:L,x2:L,y1:bot0,y2:bot0+H2,class:'axis'},g);
   S('path',{d:cs.map((c,i)=>(i?'L':'M')+sx(c)+','+syB(f(c))).join(' '),class:'rep-curve'},g);
   S('circle',{cx:sx(RS.c),cy:syB(f(RS.c)),r:5.5,class:'ball'},g);
+  {const dir=sx(RS.c)>W*0.7; const yv=Math.max(bot0+12,syB(f(RS.c))-10); const lv=S('text',{x:sx(RS.c)+(dir?-10:10),y:yv,'text-anchor':dir?'end':'start',class:'t-u halo'},g); lv.textContent='perda média = '+nf(f(RS.c),f(RS.c)<10?2:1);}
   const lab=S('text',{x:sx(RS.c)+(sx(RS.c)>W*0.7?-8:8),y:top0+12,'text-anchor':sx(RS.c)>W*0.7?'end':'start',class:'t-u halo'},g); lab.textContent='c = '+nf(RS.c,1);
   const hit=S('rect',{x:L,y:top0,width:W-L-Rm,height:bot0+H2-top0,class:'hit'},svg);
   const pick=e=>{const r=svg.getBoundingClientRect(); const px=(e.clientX-r.left)*(W/r.width); $('#r-rep')._set(lo+(px-L)/(W-L-Rm)*(hi-lo));};
@@ -1646,7 +1654,7 @@ const BANCO=[
   ctx:'Na pergunta anterior você achou ONDE fica o ponto mais baixo da curva (o valor de c). Agora a pergunta é QUANTO vale a perda nesse ponto (a altura do ponto mais baixo).',acts:[{l:'Ver o ônibus',ds:'onibus',f:()=>{loadPresetById('onibus');}},{l:'Ver o metrô',ds:'metro',f:()=>{loadPresetById('metro');}}],
   ask:'No ônibus, com c na média, qual é a altura do ponto mais baixo da curva, isto é, a perda média Σ(x − c)² ÷ n? Veja a tabela abaixo do gráfico.',type:'num',ans:()=>perdaDe('onibus',mediaDe('onibus'))/10,tol:0.5,
   hint:'Coloque c exatamente na média (digite o valor na caixa ao lado do controle).',
-  com:'É a variância! A variância é a perda média de trocar cada viagem pela média, e o desvio-padrão, √554 ≈ 23,5 min, é o erro típico dessa troca. Quem diz "o ônibus leva 44 min" erra, tipicamente, cerca de 23 minutos para mais ou para menos.'},
+  com:()=>MOD?'É a variância! A variância é a perda média de trocar cada viagem pela média. A raiz quadrada dela é o desvio-padrão, o erro típico dessa troca: quanto, tipicamente, erra quem diz "o ônibus leva 44 min". Você vai calcular esse número mais adiante.':'É a variância! A variância é a perda média de trocar cada viagem pela média, e o desvio-padrão, √554 ≈ 23,5 min, é o erro típico dessa troca. Quem diz "o ônibus leva 44 min" erra, tipicamente, cerca de 23 minutos para mais ou para menos.'},
  {part:1,ativ:'A1',title:'E no metrô?',rep:'sq',enter:()=>{loadPresetById('metro');},
   ask:'Repita com o metrô: coloque c no ponto de perda mínima. Qual é o erro típico, √(perda média)?',type:'num',unit:'min',ans:()=>st.sd,tol:0.02,
   hint:'Procure o mínimo da curva e leia a última coluna da tabela.',
@@ -1661,7 +1669,8 @@ const BANCO=[
   com:'A média é o número que menos perde ao substituir todos os dados (no sentido dos erros ao quadrado). Mas "o que menos perde" não quer dizer "que perde pouco". O desvio-padrão diz quanto se perde: se é pequeno perto da média (metrô: 1 em 40), ela resume bem a amostra; se é grande (ônibus: 23 em 44), a média esconde a maior parte da história, e é preciso olhar a distribuição inteira, que é o que o simulador faz.'},
  {part:1,ativ:'A1',title:'Desvio-padrão do metrô',sheet:1,enter:()=>{loadPresetById('metro');},
   ctx:'O desvio-padrão usa todos os valores: calcule os desvios em relação à média, eleve ao quadrado, tire a média desses quadrados (a variância) e, por fim, a raiz quadrada.',
-  ask:'Calcule o desvio-padrão dos tempos do metrô (dividindo por n).',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd},
+  ask:'Calcule o desvio-padrão dos tempos do metrô (dividindo por n).',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd,
+  com:()=>MOD?'Repare: 1,095 é exatamente √1,2, a raiz da perda mínima que você achou no gráfico do metrô. O desvio-padrão é o erro típico de trocar cada viagem pela média: no metrô, dizer "40 min" erra cerca de 1 minuto para mais ou para menos.':'É o mesmo número que você leu no gráfico da perda, √(perda mínima): o desvio-padrão é o erro típico de trocar cada viagem pela média.'},
  {part:1,ativ:'A1',title:'Desvio-padrão do ônibus',sheet:2,enter:()=>{loadPresetById('onibus');},
   ask:'Repita o cálculo para o ônibus: qual o desvio-padrão dos tempos (dividindo por n)?',type:'num',unit:'min',ans:()=>st.sd,tol:0.1,hint:hintSd},
  {part:1,ativ:'A1',title:'Por que elevar ao quadrado?',
