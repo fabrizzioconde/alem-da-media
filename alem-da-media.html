@@ -216,6 +216,7 @@ body.sem-id .quadro, body.sem-id .layout, body.sem-id #builder, body.sem-id .wra
 .sh-head b{font-family:var(--serif); font-size:17px; font-weight:500}
 .sh-lv{display:inline-grid; grid-template-columns:repeat(3,auto)}
 .sh-lv button{padding:5px 10px; font-size:12.5px}
+.sh-dados{margin:0; font-size:13.5px} .sh-dados .mono{font-family:var(--mono); font-size:13px}
 .sheet input{width:84px; font-family:var(--mono); font-size:13px; text-align:right; padding:4px 6px; border:1px solid var(--rule); border-radius:5px; background:var(--paper); color:var(--ink)}
 .sheet input.sh-ok{border-color:var(--x); box-shadow:0 0 0 1px var(--x)}
 .sheet input.sh-bad{border-color:var(--u); box-shadow:0 0 0 1px var(--u)}
@@ -1083,9 +1084,7 @@ function renderBuilder(){
   const W=Math.max(300,svg.parentNode.clientWidth);
   const SOH=!!(MOD&&MOD.so_histograma); /* módulo sem a acumulada: só os tijolinhos */
   if(SOH){ /* o nome segue o enunciado da pergunta aberta: opções A e B na Atividade 1; linhas 1 e 2 na comparação entre ônibus */
-    const ativ=ativAtual();
-    const nomes=ativ==='A1x'?{onibus:'Ônibus, linha 1 (opção B)',onibus2:'Ônibus, linha 2',metro:'Metrô (opção A)'}:{onibus:'Ônibus (opção B)',onibus2:'Ônibus, linha 2',metro:'Metrô (opção A)'};
-    $('#h-b').textContent='Os tijolinhos'+(nomes[st.preset]?' · '+nomes[st.preset]:'');}
+    const nm=nomeConjunto(); $('#h-b').textContent='Os tijolinhos'+(nm?' · '+nm:'');}
   const L=44,R=14,T=22,Ht=150,gap=SOH?0:44,Hb=SOH?0:Math.round(Math.min(260,Math.max(200,W*0.34))),B=30;
   const y0T=T+Ht, topB=y0T+gap, y0B=topB+Hb, H=y0B+B;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
@@ -1376,7 +1375,7 @@ function renderSheet(){
   const q=R[RI], box=$('#r-sheet'); if(!q.sheet||!st.raw){box.hidden=true; box.innerHTML=''; return;}
   box.hidden=false; const S=shState(), T=shTruth(), lv=S.lv, n=T.n;
   const inp=(id,val,lab)=>`<input id="${id}" inputmode="decimal" aria-label="${lab}" value="${String(val??'').replace(/"/g,'')}">`;
-  let h=`<div class="sh-head"><b>Tabela de desvios</b><div class="seg sh-lv" role="group" aria-label="Nível de ajuda">${[1,2,3].map(l=>`<button data-lv="${l}" aria-pressed="${l===lv}">Nível ${l}</button>`).join('')}</div></div>
+  const nmT=nomeConjunto(); let h=`<div class="sh-head"><b>Tabela de desvios${nmT?' · '+nmT:''}</b><div class="seg sh-lv" role="group" aria-label="Nível de ajuda">${[1,2,3].map(l=>`<button data-lv="${l}" aria-pressed="${l===lv}">Nível ${l}</button>`).join('')}</div></div>
   <p class="note">${LVTXT[lv]}</p>
   <div class="row sh-mean"><label for="sh-m">Média = Σx ÷ n =</label>${inp('sh-m',S.m,'Média')}</div>
   <div class="table-wrap"><table class="sheet-t"><tr><th>#</th><th>x</th><th>x − média</th><th>(x − média)²</th></tr>`;
@@ -1440,8 +1439,10 @@ function renderRep(){
   const q=R[RI], box=$('#r-rep'); if(!q.rep||!st.raw){box.hidden=true; box.innerHTML=''; return;}
   box.hidden=false; const S=repState();
   const lo=st.xs[0],hi=st.xs[st.n-1],pad=Math.max(1,(hi-lo)*0.1);
-  box.innerHTML=`<div class="sh-head"><b>Um número para representar todos</b>
+  const nmR=nomeConjunto();
+  box.innerHTML=`<div class="sh-head"><b>Um número para representar todos${nmR?' · '+nmR:''}</b>
     <div class="seg sh-lv" role="group" aria-label="Tipo de perda"><button data-l="sq" aria-pressed="${S.loss==='sq'}">Perda (x − c)²</button><button data-l="abs" aria-pressed="${S.loss==='abs'}"${q.rep==='abs'?'':' hidden'}>Perda |x − c|</button></div></div>
+    <p class="sh-dados">Dados${nmR?' · '+nmR:''}: <span class="mono">${dadosTexto()}</span></p>
     <p class="note">Troque todos os dados por um único número c. Cada barra magenta é o erro dessa troca; a curva de baixo mostra a perda média para cada c. Arraste o controle ou clique no gráfico.</p>
     <div class="row"><label for="rep-c">c =</label><input type="range" id="rep-c" min="${(lo-pad).toFixed(1)}" max="${(hi+pad).toFixed(1)}" step="0.1" value="${S.c}" style="flex:1;min-width:160px"><input type="text" id="rep-cv" inputmode="decimal" value="${nf(S.c,1)}" aria-label="Valor de c" style="width:80px"></div>
     <div class="chart"><svg id="rep-svg" role="img" aria-label="Erros de trocar cada dado por c e curva da perda"></svg></div>
@@ -1928,6 +1929,14 @@ function renderRoteiro(runEnter){
 }
 /* destaca o botão do conjunto de dados que está à vista */
 function marcaConjunto(){document.querySelectorAll('#r-actions .ds').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ds===st.preset)));}
+/* nome do conjunto à vista, com os nomes do enunciado aberto */
+function nomeConjunto(){
+  const ativ=ativAtual();
+  const nomes={onibus:ativ==='A1x'?'Ônibus, linha 1 (opção B)':'Ônibus (opção B)',onibus2:'Ônibus, linha 2',metro:'Metrô (opção A)',
+    banho:'Irmã Y',irmaoX:'Irmão X',amigoA:'Amigo A',amigo:'Amigo B'};
+  return nomes[st.preset]||'';
+}
+const dadosTexto=()=>(st.raw||[]).map(v=>nf(v,2)).join('; ');
 /* atividade da pergunta aberta (usada fora deste trecho, onde R pode ser outra variável) */
 function ativAtual(){try{return R[RI]&&R[RI].ativ;}catch(e){return undefined;}}
 /* ferramentas por pergunta: no módulo com "paineis", só aparece o que a pergunta usa */
