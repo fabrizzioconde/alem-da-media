@@ -1062,7 +1062,10 @@ function renderBuilder(){
   const og=st.og, svg=$('#bsvg'); if(!og)return; svg.textContent='';
   const W=Math.max(300,svg.parentNode.clientWidth);
   const SOH=!!(MOD&&MOD.so_histograma); /* módulo sem a acumulada: só os tijolinhos */
-  if(SOH){const nomes={onibus:'Ônibus, linha 1',onibus2:'Ônibus, linha 2',metro:'Metrô'}; $('#h-b').textContent='Os tijolinhos'+(nomes[st.preset]?' · '+nomes[st.preset]:'');}
+  if(SOH){ /* o nome segue o enunciado da pergunta aberta: opções A e B na Atividade 1; linhas 1 e 2 na comparação entre ônibus */
+    const ativ=ativAtual();
+    const nomes=ativ==='A1x'?{onibus:'Ônibus, linha 1 (opção B)',onibus2:'Ônibus, linha 2',metro:'Metrô (opção A)'}:{onibus:'Ônibus (opção B)',onibus2:'Ônibus, linha 2',metro:'Metrô (opção A)'};
+    $('#h-b').textContent='Os tijolinhos'+(nomes[st.preset]?' · '+nomes[st.preset]:'');}
   const L=44,R=14,T=22,Ht=150,gap=SOH?0:44,Hb=SOH?0:Math.round(Math.min(260,Math.max(200,W*0.34))),B=30;
   const y0T=T+Ht, topB=y0T+gap, y0B=topB+Hb, H=y0B+B;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
@@ -1597,8 +1600,8 @@ const BANCO=[
   opts:[{t:'Sim: as duas médias ficam abaixo de 45 min.',fb:'Cuidado: a média é um valor típico, não uma garantia. Uma viagem pode demorar bem mais que a média.'},
         {t:'Não dá para saber só com a média.',ok:true,fb:'Isso. A média não diz nada sobre o quanto as viagens variam de um dia para o outro.'},
         {t:'O metrô é melhor porque sua média é 4 min menor.',fb:'A diferença entre as médias é pequena. O que separa os dois transportes é outra coisa; vamos descobrir.'}]},
- {part:0,ativ:'A1',title:'Olhando os dados',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ver os tijolinhos do ônibus',f:()=>{setTab('show');go('#builder');}}],
-  ask:'No histograma de tijolinhos do ônibus, em quantas das 10 viagens você perderia a prova (tempo acima de 45 min)?',type:'num',unit:'viagens',ans:()=>st.xs.filter(v=>v>45).length,tol:0.01,hint:'Conte os tijolinhos à direita de 45.',
+ {part:0,ativ:'A1',title:'Olhando os dados',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ver os tijolinhos do ônibus',f:()=>{loadPresetById('onibus');setTab('show');go('#builder');}},{l:'Ver os tijolinhos do metrô',f:()=>{loadPresetById('metro');setTab('show');go('#builder');}}],
+  ask:'No histograma de tijolinhos do ônibus, em quantas das 10 viagens você perderia a prova (tempo acima de 45 min)?',type:'num',unit:'viagens',ans:()=>PRESETS.find(p=>p.id==='onibus').data.filter(v=>v>45).length,tol:0.01,hint:'Conte os tijolinhos à direita de 45.',
   com:'Metade das viagens! No metrô, o maior tempo foi 42 min.'},
 
  {part:1,ativ:'A1',title:'Amplitude do metrô',enter:()=>{loadPresetById('metro');},
@@ -1902,6 +1905,8 @@ function renderRoteiro(runEnter){
   $('#fab').textContent=`↑ Roteiro · ${RI+1}/${R.length}`;
   saveState();
 }
+/* atividade da pergunta aberta (usada fora deste trecho, onde R pode ser outra variável) */
+function ativAtual(){try{return R[RI]&&R[RI].ativ;}catch(e){return undefined;}}
 /* ferramentas por pergunta: no módulo com "paineis", só aparece o que a pergunta usa */
 const PAINEIS={dados:'#p-data',inversa:'#p-u',simulacao:'#p-sim',graficos:'#p-charts',mes:'#p-month',tijolinhos:'#builder'};
 function aplicaPaineis(q){
