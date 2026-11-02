@@ -33,6 +33,9 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 .ctx-off{display:none!important}
+.builder.no-roteiro{margin:0; padding:12px; border:1px solid var(--rule); border-radius:10px; background:var(--paper); box-shadow:none}
+.builder.no-roteiro .b-head h2{font-size:18px}
+.builder.no-roteiro .b-head p{font-size:13px}
 body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5}
 .wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:24px 48px}
 header{display:grid; gap:6px; margin-bottom:20px; max-width:760px}
@@ -1907,6 +1910,11 @@ function aplicaPaineis(q){
   for(const [nome,sel] of Object.entries(PAINEIS)){const el=$(sel); if(el) el.classList.toggle('ctx-off',!quer.has(nome));}
   $('.layout').classList.toggle('ctx-off',!['dados','inversa','simulacao','graficos','mes'].some(n=>quer.has(n)));
   const notas=document.querySelector('.wrap>details.fold'); if(notas) notas.classList.toggle('ctx-off',!quer.size);
+  /* os tijolinhos ficam dentro do card da pergunta, entre o enunciado e a resposta */
+  const bl=$('#builder');
+  if(!aplicaPaineis.casa){aplicaPaineis.casa=document.createComment('lugar dos tijolinhos'); bl.before(aplicaPaineis.casa);}
+  if(quer.has('tijolinhos')){ if(bl.nextElementSibling!==$('#r-input')) $('#r-input').before(bl); bl.classList.add('no-roteiro'); }
+  else if(bl.classList.contains('no-roteiro')){ aplicaPaineis.casa.after(bl); bl.classList.remove('no-roteiro'); }
   if(quer.has('tijolinhos')) requestAnimationFrame(()=>renderBuilder());
   if(quer.has('graficos')) requestAnimationFrame(()=>{renderCDF();renderHist();});
 }
