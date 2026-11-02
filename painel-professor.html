@@ -186,7 +186,8 @@ function statsPerg(){
       tentMedia:mean(resp.map(x=>x.tentativas)), tentMed:med(resp.map(x=>x.tentativas)), tentMax:resp.length?Math.max(...resp.map(x=>x.tentativas)):NaN,
       ateAcertar:mean(ok.map(x=>x.tentativas_ate_acertar)),
       dica:r.length?r.filter(x=>x.dicas>0).length/r.length:NaN,
-      tempoMed:med(r.filter(x=>x.tempo_total_s>0).map(x=>x.tempo_total_s))};
+      tempoMed:med(r.filter(x=>x.tempo_total_s>0).map(x=>x.tempo_total_s)),
+      calc:(()=>{const c=r.filter(x=>x.calc_usos!=null&&x.calc_usos!==''); return c.length?c.filter(x=>x.calc_usos>0).length/c.length:NaN;})()};
   });
 }
 function render(){
@@ -203,10 +204,10 @@ function render(){
   const ord=$('#ord').value; const SS=[...S];
   if(ord==='dif') SS.sort((a,b)=>(Number.isFinite(a.acerto1)?a.acerto1:2)-(Number.isFinite(b.acerto1)?b.acerto1:2));
   if(ord==='tent') SS.sort((a,b)=>(b.tentMedia||0)-(a.tentMedia||0));
-  $('#t-perg').innerHTML='<tr><th>#</th><th>Pergunta</th><th>Tipo</th><th>Responderam</th><th>Acertaram</th><th>Acerto na 1ª</th><th>Tentativas (média)</th><th>Mediana</th><th>Máx.</th><th>Até acertar</th><th>Usou dica</th><th>Tempo mediano</th></tr>'+
+  $('#t-perg').innerHTML='<tr><th>#</th><th>Pergunta</th><th>Tipo</th><th>Responderam</th><th>Acertaram</th><th>Acerto na 1ª</th><th>Tentativas (média)</th><th>Mediana</th><th>Máx.</th><th>Até acertar</th><th>Usou dica</th><th>Usou calculadora</th><th>Tempo mediano</th></tr>'+
     SS.map(s=>`<tr><td>${s.num}</td><td class="t">${esc(s.titulo)}<br><span class="note">${esc(s.parte)}</span></td><td>${({num:'numérica',choice:'escolha',text:'escrita',predict:'previsão',scale:'escala'}[s.tipo]||s.tipo)+(s.fase&&s.fase!=='atividade'?`<br><span class="note">${esc(s.fase)}</span>`:'')}</td><td>${s.respondentes} / ${s.alunos}</td><td>${pct(s.acerto)}</td>
       <td>${Number.isFinite(s.acerto1)?`<span class="bar${s.acerto1<0.5?' low':''}" style="width:${Math.round(s.acerto1*60)}px"></span>`:''}${pct(s.acerto1)}</td>
-      <td>${nf(s.tentMedia,2)}</td><td>${nf(s.tentMed,1)}</td><td>${nf(s.tentMax,0)}</td><td>${nf(s.ateAcertar,2)}</td><td>${pct(s.dica)}</td><td>${Number.isFinite(s.tempoMed)?nf(s.tempoMed,0)+' s':'—'}</td></tr>`).join('');
+      <td>${nf(s.tentMedia,2)}</td><td>${nf(s.tentMed,1)}</td><td>${nf(s.tentMax,0)}</td><td>${nf(s.ateAcertar,2)}</td><td>${pct(s.dica)}</td><td>${pct(s.calc)}</td><td>${Number.isFinite(s.tempoMed)?nf(s.tempoMed,0)+' s':'—'}</td></tr>`).join('');
   // por aluno
   $('#t-aluno').innerHTML='<tr><th>Aluno</th><th>Turma</th><th>Curso</th><th>Respondidas</th><th>Acertos</th><th>Acerto na 1ª</th><th>Tentativas</th><th>Dicas</th><th>Tabelas corretas</th><th>Tempo total</th><th>Arquivo</th></tr>'+
     D.sort((a,b)=>String(a.aluno_id).localeCompare(String(b.aluno_id))).map(d=>{const r=d.resumo, g=r.filter(x=>(x.tipo_pergunta==='num'||x.tipo_pergunta==='choice')&&x.tentativas>0);
@@ -242,14 +243,14 @@ window.addEventListener('resize',()=>{if(!$('#v-dist').hidden)renderDist();});
 function toCSV(rows,cols){const e=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>e(r[c])).join(';')).join('\r\n');}
 function dl(name,text){const b=new Blob(['﻿'+text],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);}
 const tag=()=>[modSel,cursoSel,turmaSel].filter(Boolean).map(x=>x.replace(/[^\w-]+/g,'_')+'_').join('')+new Date().toISOString().slice(0,10);
-const COLS_RES=['modulo','aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','fase','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
-const COLS_EV=['modulo','aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','fase','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
+const COLS_RES=['modulo','aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','fase','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final','calc_usos'];
+const COLS_EV=['modulo','aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','fase','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo','calc_resultado'];
 $('#e-res').onclick=()=>dl(`resumo_aluno_pergunta_${tag()}.csv`,toCSV(rows(),COLS_RES));
 $('#e-ev').onclick=()=>dl(`eventos_${tag()}.csv`,toCSV(data().flatMap(d=>d.eventos.map(e=>Object.assign({modulo:modDe(d),curso:d.curso||'',fase:'atividade'},e))),COLS_EV));
 $('#e-mat').onclick=()=>{const D=data(); const cols=['aluno_id','turma','curso',...PERG.map(p=>'q'+String(p.num).padStart(2,'0')+'_'+p.id)];
   const rs=D.map(d=>{const o={aluno_id:d.aluno_id,turma:d.turma,curso:d.curso||''}; PERG.forEach(p=>{const r=d.resumo.find(x=>x.pergunta_id===p.id); o['q'+String(p.num).padStart(2,'0')+'_'+p.id]=r?r.tentativas:'';}); return o;});
   dl(`matriz_tentativas_${tag()}.csv`,toCSV(rs,cols));};
-$('#e-perg').onclick=()=>{const S=statsPerg().map(s=>({num:s.num,id:s.id,titulo:s.titulo,parte:s.parte,tipo:s.tipo,respondentes:s.respondentes,alunos:s.alunos,prop_acerto:round(s.acerto),prop_acerto_1a:round(s.acerto1),tentativas_media:round(s.tentMedia),tentativas_mediana:s.tentMed,tentativas_max:s.tentMax,ate_acertar_media:round(s.ateAcertar),prop_dica:round(s.dica),tempo_mediano_s:s.tempoMed}));
+$('#e-perg').onclick=()=>{const S=statsPerg().map(s=>({num:s.num,id:s.id,titulo:s.titulo,parte:s.parte,tipo:s.tipo,respondentes:s.respondentes,alunos:s.alunos,prop_acerto:round(s.acerto),prop_acerto_1a:round(s.acerto1),tentativas_media:round(s.tentMedia),tentativas_mediana:s.tentMed,tentativas_max:s.tentMax,ate_acertar_media:round(s.ateAcertar),prop_dica:round(s.dica),prop_calculadora:round(s.calc),tempo_mediano_s:s.tempoMed}));
   dl(`estatisticas_por_pergunta_${tag()}.csv`,toCSV(S,Object.keys(S[0]||{})));};
 function round(v){return Number.isFinite(v)?Math.round(v*1000)/1000:'';}
 })();

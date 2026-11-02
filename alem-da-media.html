@@ -256,6 +256,24 @@ body.aula #m-normal{grid-column:span 2}
 .r-com{margin:0; padding:12px 14px; border-radius:8px; border:1px dashed var(--rule); font-size:14px}
 .r-nav{display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center}
 .quadro h4{margin:0 0 6px; font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+.calc-fab{position:fixed; left:16px; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:5; font:500 13px var(--sans); padding:9px 14px; border-radius:999px; border:1px solid var(--curve); background:var(--surface); color:var(--ink); cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.14)}
+.calc-fab[aria-expanded="true"]{background:var(--curve); color:var(--surface)}
+.calcx{position:fixed; left:16px; bottom:calc(64px + env(safe-area-inset-bottom, 0px)); z-index:6; width:292px; max-height:calc(100vh - 90px); overflow:auto; display:grid; gap:8px; padding:12px; background:var(--surface); border:1px solid var(--rule); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.22)}
+.calc-head{display:flex; justify-content:space-between; align-items:center}
+.calc-head b{font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
+.calc-x{font:inherit; font-size:20px; line-height:1; border:0; background:transparent; color:var(--muted); cursor:pointer; padding:2px 6px}
+.calc-in{font-family:var(--mono)!important; font-size:16px!important; text-align:right}
+.calc-out{font-family:var(--mono); font-size:20px; text-align:right; min-height:28px; color:var(--ink); overflow-x:auto; white-space:nowrap}
+.calc-out.err{font-size:13px; color:var(--u); font-family:var(--sans)}
+.calc-keys{display:grid; grid-template-columns:repeat(5,1fr); gap:5px}
+.calc-keys button{font:500 15px var(--mono); padding:9px 0; border-radius:7px; border:1px solid var(--rule); background:var(--paper); color:var(--ink); cursor:pointer}
+.calc-keys .k-op{background:var(--grid)} .calc-keys .k-fn{color:var(--muted); font-size:13px}
+.calc-keys .k-eq{grid-column:span 2; background:var(--curve); color:var(--surface); border-color:var(--curve)}
+.calc-use{width:100%}
+.calc-hist{list-style:none; margin:0; padding:0; display:grid; gap:4px; font-family:var(--mono); font-size:12px; color:var(--muted)}
+.calc-hist li{display:flex; justify-content:space-between; gap:8px; border-top:1px solid var(--grid); padding-top:4px}
+.calc-hist button{font:inherit; border:0; background:transparent; color:var(--curve); cursor:pointer; padding:0; text-align:right}
+@media (max-width:520px){ .calcx{left:8px; right:8px; width:auto; bottom:calc(60px + env(safe-area-inset-bottom, 0px))} }
 .fab{position:fixed; right:16px; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); z-index:5; font:500 13px var(--sans); padding:9px 14px; border-radius:999px; border:1px solid var(--u); background:var(--u); color:var(--surface); cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.18)}
 details.fold{border-top:1px solid var(--rule); padding-top:10px}
 details.fold summary{cursor:pointer; font-size:13.5px; color:var(--muted); font-weight:500}
@@ -343,6 +361,21 @@ kbd{font-family:var(--mono); font-size:11px; border:1px solid var(--rule); borde
     </div>
   </section>
   <button class="fab" id="fab" hidden>↑ Roteiro</button>
+  <button class="calc-fab" id="calc-fab" aria-expanded="false" aria-controls="calcx">Calculadora</button>
+  <section class="calcx" id="calcx" hidden aria-label="Calculadora">
+    <div class="calc-head"><b>Calculadora</b><button class="calc-x" id="calc-x" aria-label="Fechar a calculadora">×</button></div>
+    <input type="text" id="calc-in" class="calc-in" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Expressão" placeholder="ex.: (80 − 44)^2">
+    <div class="calc-out" id="calc-out" aria-live="polite">&nbsp;</div>
+    <div class="calc-keys" id="calc-keys">
+      <button data-k="C" class="k-fn">C</button><button data-k="⌫" class="k-fn" aria-label="Apagar">⌫</button><button data-k="(">(</button><button data-k=")">)</button><button data-k="÷" class="k-op">÷</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="²" class="k-op" aria-label="ao quadrado">x²</button><button data-k="×" class="k-op">×</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="^" class="k-op" aria-label="potência">xʸ</button><button data-k="−" class="k-op">−</button>
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="√(" class="k-op" aria-label="raiz quadrada">√</button><button data-k="+" class="k-op">+</button>
+      <button data-k="0">0</button><button data-k=",">,</button><button data-k="Ans" class="k-fn">Ans</button><button data-k="=" class="k-eq">=</button>
+    </div>
+    <button class="btn calc-use" id="calc-use" disabled>Usar na resposta</button>
+    <ol class="calc-hist" id="calc-hist" aria-label="Contas anteriores"></ol>
+  </section>
 
   <div class="layout">
     <div class="col">
@@ -1762,7 +1795,7 @@ function logEv(tipo,extra){
   const q=R[RI]; const now=Date.now();
   LOG.eventos.push(Object.assign({aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',sessao_id:LOG.sessao,data_hora:new Date(now).toISOString(),
     pergunta_num:RI+1,pergunta_id:q.qid,parte:PARTS[q.part],fase:faseDe(q),tipo_pergunta:q.type,tipo_evento:tipo,tentativa_n:'',resposta:'',correta:'',valor_esperado:'',nivel_tabela:'',
-    segundos_na_pergunta:Math.round((now-LOG.enteredAt)/100)/10,dados:dataLabel(),metodo:MNAME[st.mode]},extra||{}));
+    segundos_na_pergunta:Math.round((now-LOG.enteredAt)/100)/10,dados:dataLabel(),metodo:MNAME[st.mode],calc_resultado:''},extra||{}));
   saveLog(); updateLogInfo();
 }
 function tryN(){const k=R[RI].qid; LOG.tries[k]=(LOG.tries[k]||0)+1; return LOG.tries[k];}
@@ -1784,12 +1817,12 @@ function buildResumo(){
       acertou_primeira:(q.type==='num'||q.type==='choice')?(T.length?(T[0].correta===1?1:0):''):'',
       dicas:E.filter(e=>e.tipo_evento==='dica').length,viu_comentario:E.some(e=>e.tipo_evento==='comentario')?1:0,
       tabela_conferencias:E.filter(e=>e.tipo_evento==='tabela').length,tabela_correta:E.some(e=>e.tipo_evento==='tabela'&&e.correta===1)?1:(E.some(e=>e.tipo_evento==='tabela')?0:''),
-      tempo_total_s:Math.round((tempo[q.qid]||0)*10)/10,resposta_final:last?last.resposta:''});
+      tempo_total_s:Math.round((tempo[q.qid]||0)*10)/10,resposta_final:last?last.resposta:'',calc_usos:E.filter(e=>e.tipo_evento==='calculadora').length});
   });
   return out;
 }
-const COLS_EV=['aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','fase','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo'];
-const COLS_RES=['aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','fase','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final'];
+const COLS_EV=['aluno_id','turma','curso','sessao_id','data_hora','pergunta_num','pergunta_id','parte','fase','tipo_pergunta','tipo_evento','tentativa_n','resposta','correta','valor_esperado','nivel_tabela','segundos_na_pergunta','dados','metodo','calc_resultado'];
+const COLS_RES=['aluno_id','turma','curso','pergunta_num','pergunta_id','titulo','parte','fase','tipo_pergunta','tentativas','acertou','tentativas_ate_acertar','acertou_primeira','dicas','viu_comentario','tabela_conferencias','tabela_correta','tempo_total_s','resposta_final','calc_usos'];
 function toCSV(rows,cols){const esc=v=>{if(v==null)v='';if(typeof v==='number')v=String(v).replace('.',',');v=String(v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};return cols.join(';')+'\r\n'+rows.map(r=>cols.map(c=>esc(r[c])).join(';')).join('\r\n');}
 function fileBase(){const d=new Date().toISOString().slice(0,10); const s=x=>slug(x||'')||'sem'; return `respostas_${s(LOG.turma)}_${s(LOG.aluno||'anonimo')}_${d}`;}
 function exportObj(){flushText(); return {versao:VERSAO,modulo:MODULO,exportado_em:new Date().toISOString(),aluno_id:LOG.aluno||'anonimo',turma:LOG.turma||'',curso:LOG.curso||'',
@@ -1917,6 +1950,60 @@ let resetArm=0; $('#x-reset').onclick=()=>{
 };
 
 let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{renderCDF();renderHist();renderBuilder();renderMonth();},120);});
+/* ---------- calculadora (avaliador próprio, sem eval) ---------- */
+const CALC={ans:null,last:null,hist:[]};
+function calcAvalia(txt){
+  const src=String(txt).replace(/Ans/gi,'A').replace(/[×*]/g,'*').replace(/[÷/]/g,'/').replace(/[−–]/g,'-').replace(/\s+/g,'').replace(/raiz/gi,'√').replace(/sqrt/gi,'√');
+  if(!src) throw new Error('vazio');
+  let i=0;
+  const peek=()=>src[i], take=c=>{if(src[i]===c){i++;return true;}return false;};
+  function num(){const m=/^\d+(?:[.,]\d*)?|^[.,]\d+/.exec(src.slice(i)); if(!m) throw new Error('número esperado'); i+=m[0].length; return parseFloat(m[0].replace(',','.'));}
+  function primary(){
+    if(take('(')){const v=expr(); if(!take(')')) throw new Error('falta fechar parêntese'); return v;}
+    if(take('√')){const v=primary(); if(v<0) throw new Error('raiz de número negativo'); return Math.sqrt(v);}
+    if(take('A')){if(CALC.ans==null) throw new Error('ainda não há Ans'); return CALC.ans;}
+    return num();
+  }
+  function postfix(){let v=primary(); while(take('²')) v=v*v; return v;}
+  function unary(){if(take('-')) return -unary(); if(take('+')) return unary(); return power();}
+  function power(){const b=postfix(); if(take('^')){const e=unary(); return Math.pow(b,e);} return b;}
+  function term(){let v=unary(); for(;;){if(take('*')) v*=unary(); else if(take('/')){const d=unary(); if(d===0) throw new Error('divisão por zero'); v/=d;} else return v;}}
+  function expr(){let v=term(); for(;;){if(take('+')) v+=term(); else if(take('-')) v-=term(); else return v;}}
+  const v=expr(); if(i<src.length) throw new Error('símbolo inesperado: '+src[i]);
+  if(!Number.isFinite(v)) throw new Error('resultado inválido');
+  return v;
+}
+const calcFmt=v=>Math.abs(v)>=1e12||(v!==0&&Math.abs(v)<1e-6)?v.toExponential(6).replace('.',','):v.toLocaleString('pt-BR',{maximumFractionDigits:6,useGrouping:false});
+const calcCampo=v=>String(Math.round(v*1e4)/1e4).replace('.',',');
+function calcIgual(){
+  const inp=$('#calc-in'), out=$('#calc-out'), ex=inp.value.trim(); if(!ex) return;
+  try{const v=calcAvalia(ex); CALC.ans=v; CALC.last=v; out.className='calc-out'; out.textContent='= '+calcFmt(v);
+    CALC.hist.unshift({ex,v}); CALC.hist=CALC.hist.slice(0,6); calcHist(); $('#calc-use').disabled=false;
+    logEv('calculadora',{resposta:ex,calc_resultado:Math.round(v*1e6)/1e6});
+  }catch(e){out.className='calc-out err'; out.textContent='Não consegui calcular: '+e.message+'.';}
+}
+function calcHist(){const h=$('#calc-hist'); h.innerHTML=CALC.hist.map((x,k)=>`<li><span>${x.ex.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</span><button data-k="${k}" title="Usar na resposta">${calcFmt(x.v)}</button></li>`).join('');
+  h.querySelectorAll('button').forEach(b=>b.onclick=()=>calcUsa(CALC.hist[+b.dataset.k].v));}
+function calcUsa(v){
+  const f=$('#r-val');
+  if(!f||f.disabled){showFb('Esta pergunta não tem um campo numérico livre para receber o valor.',''); return;}
+  f.value=calcCampo(v); f.focus(); logEv('calc_usar',{resposta:f.value,calc_resultado:Math.round(v*1e6)/1e6});
+  showFb('Valor colocado na resposta. Confira e clique em "'+$('#r-check').textContent+'".','');
+}
+function calcInsere(t){const inp=$('#calc-in'); const a=inp.selectionStart??inp.value.length, b=inp.selectionEnd??inp.value.length; inp.value=inp.value.slice(0,a)+t+inp.value.slice(b); const c=a+t.length; inp.setSelectionRange(c,c);}
+function calcAbre(on){const p=$('#calcx'), f=$('#calc-fab'); p.hidden=!on; f.setAttribute('aria-expanded',on); if(on){$('#calc-in').focus(); logEv('calc_abrir');}}
+if(!(MOD&&MOD.calculadora===false)){
+  if(window.matchMedia&&matchMedia('(pointer:coarse)').matches) $('#calc-in').setAttribute('inputmode','none');
+  $('#calc-fab').onclick=()=>calcAbre($('#calcx').hidden);
+  $('#calc-x').onclick=()=>calcAbre(false);
+  $('#calc-keys').querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.k, inp=$('#calc-in');
+    if(k==='=') return calcIgual();
+    if(k==='C'){inp.value=''; $('#calc-out').innerHTML='&nbsp;'; $('#calc-out').className='calc-out'; return inp.focus();}
+    if(k==='⌫'){const a=inp.selectionStart??inp.value.length; if(a>0&&inp.selectionStart===inp.selectionEnd){inp.value=inp.value.slice(0,a-1)+inp.value.slice(a); inp.setSelectionRange(a-1,a-1);} else calcInsere(''); return inp.focus();}
+    calcInsere(k); inp.focus();});
+  $('#calc-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(); calcIgual();} if(e.key==='Escape') calcAbre(false);});
+  $('#calc-use').onclick=()=>{if(CALC.last!=null) calcUsa(CALC.last);};
+} else { $('#calc-fab').hidden=true; }
 /* apresentação do módulo (título, abertura, painéis ocultos) */
 if(MOD){
   if(MOD.titulo){document.title=MOD.titulo; $('header h1').textContent=MOD.titulo;}

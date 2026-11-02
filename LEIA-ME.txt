@@ -9,7 +9,9 @@ ARQUIVOS
 PARA O ALUNO
 1. Abra alem-da-media.html no navegador (Chrome, Edge, Firefox).
 2. No alto do roteiro, preencha "Seu código" (matrícula ou apelido combinado), a turma e o curso.
-3. Responda as perguntas. Cada tentativa, dica e ação fica registrada no navegador.
+3. Responda as perguntas. O botão "Calculadora" (canto inferior esquerdo) faz as contas,
+   inclusive potência e raiz; "Usar na resposta" coloca o resultado no campo da pergunta.
+   Cada tentativa, dica e ação fica registrada no navegador.
 4. Ao terminar, clique em "Enviar respostas ao professor" (versão online). Se o envio falhar,
    ou na versão sem envio, clique em "Baixar respostas (.json)" e envie o arquivo ao professor
    (e-mail, AVA, formulário). Nome do arquivo: respostas_<turma>_<codigo>_<data>.json
@@ -31,6 +33,8 @@ O QUE É REGISTRADO
 - previsões e respostas escritas (o texto final de cada visita à pergunta)
 - uso de dica, abertura do comentário, conferências da tabela de desvios (e o nível usado)
 - ações do roteiro (sortear, registrar, simular meses) e o tempo em cada pergunta
+- uso da calculadora: abertura, cada conta feita (expressão e resultado) e o uso do botão
+  "Usar na resposta", sempre ligados à pergunta aberta naquele momento
 
 OBSERVAÇÕES
 - Os dados ficam só no navegador do aluno até ele baixar o arquivo; nada é enviado pela internet.
