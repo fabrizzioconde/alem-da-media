@@ -33,6 +33,8 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 .ctx-off{display:none!important}
+#r-actions .btn.ds[aria-pressed="true"]{background:var(--curve); border-color:var(--curve); color:var(--surface)}
+#r-actions .btn.ds[aria-pressed="true"]::before{content:"✓ "}
 .builder.no-roteiro{margin:0; padding:12px; border:1px solid var(--rule); border-radius:10px; background:var(--paper); box-shadow:none}
 .builder.no-roteiro .b-head h2{font-size:18px}
 .builder.no-roteiro .b-head p{font-size:13px}
@@ -1600,7 +1602,7 @@ const BANCO=[
   opts:[{t:'Sim: as duas médias ficam abaixo de 45 min.',fb:'Cuidado: a média é um valor típico, não uma garantia. Uma viagem pode demorar bem mais que a média.'},
         {t:'Não dá para saber só com a média.',ok:true,fb:'Isso. A média não diz nada sobre o quanto as viagens variam de um dia para o outro.'},
         {t:'O metrô é melhor porque sua média é 4 min menor.',fb:'A diferença entre as médias é pequena. O que separa os dois transportes é outra coisa; vamos descobrir.'}]},
- {part:0,ativ:'A1',title:'Olhando os dados',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ver os tijolinhos do ônibus',f:()=>{loadPresetById('onibus');setTab('show');go('#builder');}},{l:'Ver os tijolinhos do metrô',f:()=>{loadPresetById('metro');setTab('show');go('#builder');}}],
+ {part:0,ativ:'A1',title:'Olhando os dados',enter:()=>{loadPresetById('onibus');},acts:[{l:'Ver os tijolinhos do ônibus',ds:'onibus',f:()=>{loadPresetById('onibus');setTab('show');go('#builder');}},{l:'Ver os tijolinhos do metrô',ds:'metro',f:()=>{loadPresetById('metro');setTab('show');go('#builder');}}],
   ask:'No histograma de tijolinhos do ônibus, em quantas das 10 viagens você perderia a prova (tempo acima de 45 min)?',type:'num',unit:'viagens',ans:()=>PRESETS.find(p=>p.id==='onibus').data.filter(v=>v>45).length,tol:0.01,hint:'Conte os tijolinhos à direita de 45.',
   com:'Metade das viagens! No metrô, o maior tempo foi 42 min.'},
 
@@ -1658,7 +1660,7 @@ const BANCO=[
  {part:1,ativ:'A1x',title:'Linha 2: desvio-padrão',sheet:2,enter:()=>{loadPresetById('onibus2');},
   ask:'Agora calcule o desvio-padrão da linha 2 (dividindo por n).',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd,
   com:'Cerca de 14,6 min, contra 23,5 min da linha 1. O desvio-padrão enxerga uma diferença que a amplitude não enxergou.'},
- {part:1,ativ:'A1x',title:'Mesma amplitude, riscos diferentes',enter:()=>{loadPresetById('onibus2');},acts:[{l:'Ver os tijolinhos da linha 1',f:()=>{loadPresetById('onibus');setTab('show');go('#builder');}},{l:'Ver os tijolinhos da linha 2',f:()=>{loadPresetById('onibus2');setTab('show');go('#builder');}}],
+ {part:1,ativ:'A1x',title:'Mesma amplitude, riscos diferentes',enter:()=>{loadPresetById('onibus2');},acts:[{l:'Ver os tijolinhos da linha 1',ds:'onibus',f:()=>{loadPresetById('onibus');setTab('show');go('#builder');}},{l:'Ver os tijolinhos da linha 2',ds:'onibus2',f:()=>{loadPresetById('onibus2');setTab('show');go('#builder');}}],
   ask:'As duas linhas têm a mesma média (44) e a mesma amplitude (65). Qual é mais arriscada para quem tem 45 min?',type:'choice',
   opts:[{t:'São igualmente arriscadas, porque média e amplitude são iguais.',fb:'Conte as viagens acima de 45 min em cada linha: 5 de 10 na linha 1 e só 1 de 10 na linha 2.'},
         {t:'A linha 1: tem desvio-padrão maior, e 5 de 10 viagens passam de 45 min, contra 1 de 10 na linha 2.',ok:true,fb:'Isso. Na linha 2, quase todas as viagens ficam perto de 43 min; só os dois extremos são distantes. A amplitude só olha esses dois extremos.'},
@@ -1876,7 +1878,8 @@ function renderRoteiro(runEnter){
     $('#enun-body').innerHTML=`<div class="enun-box"><b>${E.box}</b><p>${E.txt}</p></div><p class="enun-d">${E.dados}</p><ul>${E.linhas.map(([a,b])=>`<li><b>${a}:</b> <span class="mono">[${b}]</span></li>`).join('')}</ul><p class="enun-q">${E.q}</p>`;}
   else en.hidden=true;
   const ctx=$('#r-ctx'); ctx.hidden=!q.ctx; ctx.textContent=q.ctx||'';
-  const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; b.onclick=()=>{if(st.busy)return; a.f(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
+  const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; if(a.ds){b.dataset.ds=a.ds; b.classList.add('ds');} b.onclick=()=>{if(st.busy)return; a.f(); marcaConjunto(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
+  marcaConjunto();
   $('#r-ask').textContent=q.ask;
   const inp=$('#r-input'), a=ANS[RI]||{}; inp.innerHTML='';
   const travada=medida(q)&&a.v!=null&&a.v!=='';
@@ -1905,6 +1908,8 @@ function renderRoteiro(runEnter){
   $('#fab').textContent=`↑ Roteiro · ${RI+1}/${R.length}`;
   saveState();
 }
+/* destaca o botão do conjunto de dados que está à vista */
+function marcaConjunto(){document.querySelectorAll('#r-actions .ds').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ds===st.preset)));}
 /* atividade da pergunta aberta (usada fora deste trecho, onde R pode ser outra variável) */
 function ativAtual(){try{return R[RI]&&R[RI].ativ;}catch(e){return undefined;}}
 /* ferramentas por pergunta: no módulo com "paineis", só aparece o que a pergunta usa */
