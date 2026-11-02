@@ -286,6 +286,8 @@ body.aula #m-normal{grid-column:span 2}
 .calc-keys{display:grid; grid-template-columns:repeat(5,1fr); gap:5px}
 .calc-keys button{font:500 15px var(--mono); padding:9px 0; border-radius:7px; border:1px solid var(--rule); background:var(--paper); color:var(--ink); cursor:pointer}
 .calc-keys .k-op{background:var(--grid)} .calc-keys .k-fn{color:var(--muted); font-size:13px}
+.calc-keys .k-limpar{font:600 13px var(--sans); color:var(--u); border-color:var(--u); background:var(--surface)}
+.calc-hhead{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted)}
 .calc-keys .k-eq{grid-column:span 2; background:var(--curve); color:var(--surface); border-color:var(--curve)}
 .calc-use{width:100%}
 .calc-hist{list-style:none; margin:0; padding:0; display:grid; gap:4px; font-family:var(--mono); font-size:12px; color:var(--muted)}
@@ -388,13 +390,14 @@ kbd{font-family:var(--mono); font-size:11px; border:1px solid var(--rule); borde
     <input type="text" id="calc-in" class="calc-in" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Expressão" placeholder="ex.: (80 − 44)^2">
     <div class="calc-out" id="calc-out" aria-live="polite">&nbsp;</div>
     <div class="calc-keys" id="calc-keys">
-      <button data-k="C" class="k-fn">C</button><button data-k="⌫" class="k-fn" aria-label="Apagar">⌫</button><button data-k="(">(</button><button data-k=")">)</button><button data-k="÷" class="k-op">÷</button>
+      <button data-k="C" class="k-limpar" aria-label="Limpar a conta">Limpar</button><button data-k="⌫" class="k-fn" aria-label="Apagar">⌫</button><button data-k="(">(</button><button data-k=")">)</button><button data-k="÷" class="k-op">÷</button>
       <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="²" class="k-op" aria-label="ao quadrado">x²</button><button data-k="×" class="k-op">×</button>
       <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="^" class="k-op" aria-label="potência">xʸ</button><button data-k="−" class="k-op">−</button>
       <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="√(" class="k-op" aria-label="raiz quadrada">√</button><button data-k="+" class="k-op">+</button>
       <button data-k="0">0</button><button data-k=",">,</button><button data-k="Ans" class="k-fn">Ans</button><button data-k="=" class="k-eq">=</button>
     </div>
     <button class="btn calc-use" id="calc-use" disabled>Usar na resposta</button>
+    <div class="calc-hhead" id="calc-hhead" hidden><span>Contas anteriores</span><button class="linklike" id="calc-hclear">Limpar lista</button></div>
     <ol class="calc-hist" id="calc-hist" aria-label="Contas anteriores"></ol>
   </section>
 
@@ -2024,12 +2027,12 @@ const calcFmt=v=>Math.abs(v)>=1e12||(v!==0&&Math.abs(v)<1e-6)?v.toExponential(6)
 const calcCampo=v=>String(Math.round(v*1e4)/1e4).replace('.',',');
 function calcIgual(){
   const inp=$('#calc-in'), out=$('#calc-out'), ex=inp.value.trim(); if(!ex) return;
-  try{const v=calcAvalia(ex); CALC.ans=v; CALC.last=v; out.className='calc-out'; out.textContent='= '+calcFmt(v);
+  try{const v=calcAvalia(ex); CALC.ans=v; CALC.last=v; CALC.feito=true; out.className='calc-out'; out.textContent='= '+calcFmt(v);
     CALC.hist.unshift({ex,v}); CALC.hist=CALC.hist.slice(0,6); calcHist(); $('#calc-use').disabled=false;
     logEv('calculadora',{resposta:ex,calc_resultado:Math.round(v*1e6)/1e6});
   }catch(e){out.className='calc-out err'; out.textContent='Não consegui calcular: '+e.message+'.';}
 }
-function calcHist(){const h=$('#calc-hist'); h.innerHTML=CALC.hist.map((x,k)=>`<li><span>${x.ex.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</span><button data-k="${k}" title="Usar na resposta">${calcFmt(x.v)}</button></li>`).join('');
+function calcHist(){const h=$('#calc-hist'); $('#calc-hhead').hidden=!CALC.hist.length; h.innerHTML=CALC.hist.map((x,k)=>`<li><span>${x.ex.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</span><button data-k="${k}" title="Usar na resposta">${calcFmt(x.v)}</button></li>`).join('');
   h.querySelectorAll('button').forEach(b=>b.onclick=()=>calcUsa(CALC.hist[+b.dataset.k].v));}
 function calcUsa(v){
   const f=$('#r-val');
@@ -2045,10 +2048,15 @@ if(!(MOD&&MOD.calculadora===false)){
   $('#calc-x').onclick=()=>calcAbre(false);
   $('#calc-keys').querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.k, inp=$('#calc-in');
     if(k==='=') return calcIgual();
-    if(k==='C'){inp.value=''; $('#calc-out').innerHTML='&nbsp;'; $('#calc-out').className='calc-out'; return inp.focus();}
+    if(k==='C'){inp.value=''; CALC.feito=false; $('#calc-out').innerHTML='&nbsp;'; $('#calc-out').className='calc-out'; return inp.focus();}
+    CALC.feito&&k==='⌫'&&(CALC.feito=false);
     if(k==='⌫'){const a=inp.selectionStart??inp.value.length; if(a>0&&inp.selectionStart===inp.selectionEnd){inp.value=inp.value.slice(0,a-1)+inp.value.slice(a); inp.setSelectionRange(a-1,a-1);} else calcInsere(''); return inp.focus();}
-    calcInsere(k); inp.focus();});
-  $('#calc-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(); calcIgual();} if(e.key==='Escape') calcAbre(false);});
+    if(CALC.feito){const op=['+','−','×','÷','^','²'].includes(k); inp.value=op?'Ans':''; inp.setSelectionRange(inp.value.length,inp.value.length);}
+    calcInsere(k); CALC.feito=false; inp.focus();});
+  $('#calc-in').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault(); calcIgual(); return;} if(e.key==='Escape'){calcAbre(false); return;}
+    if(CALC.feito&&e.key.length===1){ if(/[\d(,.√]/.test(e.key)) e.target.value=''; else if(/[-+*\/^×÷−]/.test(e.key)) e.target.value='Ans'; CALC.feito=false; }
+    else if(e.key==='Backspace'||e.key==='Delete') CALC.feito=false;});
+  $('#calc-hclear').onclick=()=>{CALC.hist=[]; calcHist();};
   $('#calc-use').onclick=()=>{if(CALC.last!=null) calcUsa(CALC.last);};
 } else { $('#calc-fab').hidden=true; }
 /* ---------- identificação: tela de entrada, linha compacta, compartilhada entre módulos ---------- */
