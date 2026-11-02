@@ -32,6 +32,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+.ctx-off{display:none!important}
 body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5}
 .wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:24px 48px}
 header{display:grid; gap:6px; margin-bottom:20px; max-width:760px}
@@ -1893,8 +1894,20 @@ function renderRoteiro(runEnter){
   $('#r-fb').hidden=true; const com=$('#r-com'); com.hidden=true;
   $('#r-showcom').hidden=!q.com||medida(q); $('#r-prev').disabled=RI===0; $('#r-next').textContent=RI===R.length-1?'Fim do roteiro':'Próxima ▸'; $('#r-next').disabled=RI===R.length-1;
   if(a.ok&&q.type==='num'&&!medida(q)) showFb('✓ Resposta correta.','ok');
+  aplicaPaineis(q);
   $('#fab').textContent=`↑ Roteiro · ${RI+1}/${R.length}`;
   saveState();
+}
+/* ferramentas por pergunta: no módulo com "paineis", só aparece o que a pergunta usa */
+const PAINEIS={dados:'#p-data',inversa:'#p-u',simulacao:'#p-sim',graficos:'#p-charts',mes:'#p-month',tijolinhos:'#builder'};
+function aplicaPaineis(q){
+  if(!(MOD&&MOD.paineis)) return;
+  const quer=new Set(MOD.paineis[q.qid]||[]);
+  for(const [nome,sel] of Object.entries(PAINEIS)){const el=$(sel); if(el) el.classList.toggle('ctx-off',!quer.has(nome));}
+  $('.layout').classList.toggle('ctx-off',!['dados','inversa','simulacao','graficos','mes'].some(n=>quer.has(n)));
+  const notas=document.querySelector('.wrap>details.fold'); if(notas) notas.classList.toggle('ctx-off',!quer.size);
+  if(quer.has('tijolinhos')) requestAnimationFrame(()=>renderBuilder());
+  if(quer.has('graficos')) requestAnimationFrame(()=>{renderCDF();renderHist();});
 }
 function showFb(html,cls){const f=$('#r-fb'); f.hidden=false; f.className='r-fb '+(cls||''); f.innerHTML=html;}
 function checkAns(){

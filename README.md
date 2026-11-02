@@ -20,6 +20,8 @@ Roteiro interativo de estatística sobre **média, variação e risco**, com reg
 
 Os módulos que derivam do roteiro original saem de um único arquivo, `alem-da-media.html`, que guarda um **banco** com todas as perguntas. A configuração de cada módulo (`config/modulos/mN.json`) diz quais perguntas entram e em que ordem, o título, o texto de abertura, os painéis ocultos (`css`) e a versão do registro. O gerador do site embute essa configuração em cada página. Assim, o motor de registro e envio é um só.
 
+**Ferramentas por pergunta:** com `"paineis"` na configuração (pergunta → lista de ferramentas: `dados`, `tijolinhos`, `inversa`, `simulacao`, `graficos`, `mes`), a parte de baixo da página mostra só o que a pergunta aberta usa; perguntas sem entrada não mostram nada. Sem essa chave, tudo fica visível, como no roteiro completo.
+
 **Calculadora:** todos os módulos têm uma calculadora (quatro operações, parênteses, potência, raiz, `Ans`, vírgula decimal), sem funções estatísticas, disponível também no diagnóstico e na verificação. Cada conta é registrada como evento `calculadora` (expressão em `resposta`, valor em `calc_resultado`), e o resumo traz `calc_usos` por pergunta. Para desligar num módulo: `"calculadora": false` na configuração.
 
 Tipos de pergunta: `num`, `choice`, `predict`, `text` e `scale` (1 a 5). O campo `fase` separa `diagnostico` e `verificacao` (uma tentativa, sem dica nem gabarito), `atividade` e `avaliacao`. Sem configuração, o arquivo abre o roteiro completo original, com os mesmos identificadores de pergunta de sempre.
@@ -60,3 +62,4 @@ Os dados ficam só no navegador do aluno até ele baixar o arquivo. Prefira cód
 - **01/11/2026** — versão 2 do registro: campo Curso, identificação do módulo, envio automático para planilha do Google; painel com filtro por curso; gerador do site.
 - **01/11/2026** — Módulo 1 ("A ilusão da média"), gerado do mesmo arquivo-fonte: perguntas de diagnóstico, verificação e escala; painel do professor separa módulos.
 - **02/11/2026** — Calculadora em todos os módulos, com registro das contas.
+- **02/11/2026** — Ferramentas por pergunta no Módulo 1: a seção de dados sai, e os tijolinhos só aparecem nas perguntas que os usam.

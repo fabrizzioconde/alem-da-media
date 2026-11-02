@@ -36,5 +36,13 @@
   "textos": {
     "#h-b": "Os tijolinhos",
     "#builder .b-head p": "Cada tijolinho é uma observação e vale 1/n de altura. Tijolinhos na mesma coluna caíram na mesma classe de valores."
+  },
+  "paineis": {
+    "olhando-os-dados": [
+      "tijolinhos"
+    ],
+    "mesma-amplitude-riscos-diferentes": [
+      "tijolinhos"
+    ]
   }
 }
