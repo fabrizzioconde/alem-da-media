@@ -211,6 +211,17 @@ body.sem-id .quadro, body.sem-id .layout, body.sem-id #builder, body.sem-id .wra
 .rep-c{stroke:var(--u); stroke-width:2}
 .rep-curve{fill:none; stroke:var(--curve); stroke-width:2.2}
 .hzhide{display:none!important}
+.reta-pt{fill:var(--x); stroke:var(--surface); stroke-width:1.5}
+.reta-pt.sem{fill:var(--step)}
+.reta-m{stroke:var(--curve); stroke-width:2; stroke-dasharray:5 3}
+.reta-d{stroke-width:3; stroke-linecap:round; opacity:.75}
+.reta-d.pos{stroke:var(--x)} .reta-d.neg{stroke:var(--u)}
+.reta-on{opacity:1!important; stroke-width:5}
+circle.reta-on{r:7; stroke:var(--ink); stroke-width:2}
+.reta-nome{font-family:var(--serif); font-size:14px; fill:var(--ink)}
+.reta-soma{font-size:12.5px; fill:var(--muted)}
+.reta-soma tspan.pos{fill:var(--x); font-weight:600} .reta-soma tspan.neg{fill:var(--u); font-weight:600}
+.sheet-t tr.hi td{background:var(--usoft)}
 .sheet{border:1px solid var(--rule); border-radius:10px; padding:12px 14px; display:grid; gap:10px; background:var(--surface)}
 .sh-head{display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center}
 .sh-head b{font-family:var(--serif); font-size:17px; font-weight:500}
@@ -352,6 +363,7 @@ kbd{font-family:var(--mono); font-size:11px; border:1px solid var(--rule); borde
         <div class="row" id="r-actions"></div>
         <p class="r-ask" id="r-ask"></p>
         <div id="r-input"></div>
+        <div class="sheet" id="r-reta" hidden></div>
         <div class="sheet" id="r-sheet" hidden></div>
         <div class="sheet" id="r-rep" hidden></div>
         <p class="r-fb" id="r-fb" hidden></p>
@@ -1395,7 +1407,7 @@ function renderSheet(){
   bind('sh-sd',v=>S.sd=v); bind('sh-ss',v=>S.ss=v); bind('sh-v',v=>S.v=v); bind('sh-s',v=>S.s=v);
   $('#sh-check').onclick=shCheck; $('#sh-clear').onclick=()=>{const k=RI+':'+st.preset; SHEET[k]={lv:S.lv,m:'',d:[],q:[],sd:'',ss:'',v:'',s:''}; renderSheet(); saveState();};
   $('#sh-use').onclick=()=>{const c=shComputed(S); const r=$('#r-val'); if(!Number.isFinite(c.s)){shMsg('Complete a tabela antes.','bad');return;} if(r){r.value=nfix(c.s,3); r.focus();} shMsg('Valor copiado para a resposta. Agora clique em Conferir.','');};
-  shUpdate();
+  shUpdate(); retaLiga();
 }
 function shMsg(t,c){const m=$('#sh-msg'); m.hidden=false; m.className='r-fb '+(c||''); m.innerHTML=t;}
 function shUpdate(){
@@ -1444,6 +1456,67 @@ function repFaixa(t){const q=R[RI]; const ids=[...new Set((q.acts||[]).filter(a=
   let fmax=0; for(const d of conj) for(let i=0;i<=160;i++) fmax=Math.max(fmax,per(d,lo+(hi-lo)*i/160));
   return {lo,hi,fmax:fmax*1.08,comum:ids.length>1};}
 function lossAt(c,t){const x=st.raw;let s=0;for(const v of x)s+=t==='abs'?Math.abs(v-c):(v-c)**2;return s;}
+/* Reta numérica: os dados como pontos numa reta só, a média como linha tracejada e, embaixo, cada desvio x − média
+   como um traço (verde para cima da média, magenta para baixo). Ligada à tabela de desvios: passar o mouse ou tocar
+   numa linha da tabela acende o ponto e o traço correspondentes, e vice-versa. A escala é a mesma em todas as perguntas
+   (metrô e ônibus lado a lado), para que o espalhamento seja comparável. q.reta: true (conjunto à vista) ou lista de ids. */
+const RETA_ESCALA=['metro','onibus','onibus2'];
+function renderReta(){
+  const q=R[RI], box=$('#r-reta'); const ids=q.reta?(q.reta===true?[st.preset]:q.reta):[];
+  if(!ids.length||!st.raw){box.hidden=true; box.innerHTML=''; return;}
+  box.hidden=false;
+  const A1x=ativAtual()==='A1x';
+  const nomeDe=id=>({onibus:A1x?'Ônibus, linha 1':'Ônibus (opção B)',onibus2:'Ônibus, linha 2',metro:'Metrô (opção A)'})[id]||id;
+  const sets=ids.map(id=>{const d=id===st.preset?st.raw.slice():PRESETS.find(p=>p.id===id).data.slice(); const m=d.reduce((a,b)=>a+b,0)/d.length;
+    return {id,d,m,nome:nomeDe(id),desv:q.retaDesvios==='todos'||id===st.preset};});
+  const varios=sets.length>1, somas=!!q.retaSomas;
+  const nota=somas?'Cada ponto é uma viagem; a linha tracejada é a média. Embaixo, cada traço é um desvio x − média: verde para cima da média, magenta para baixo. Compare o comprimento total dos verdes com o dos magentas.'
+    :'Cada ponto é uma viagem; a linha tracejada é a média. Embaixo, cada traço é o desvio x − média de uma linha da tabela (verde para cima da média, magenta para baixo). Passe o mouse ou toque numa linha da tabela, ou num ponto, para ver qual é qual.';
+  box.innerHTML=`<div class="sh-head"><b>Os dados na reta${varios?'':' · '+sets[0].nome}</b></div><p class="note">${nota}${varios?' A escala é a mesma para os conjuntos, para comparar o espalhamento.':''}</p><div class="chart"><svg id="reta-svg" role="img" aria-label="Dados numa reta numérica, com a média e os desvios"></svg></div>`;
+  const svg=$('#reta-svg'); const tudo=RETA_ESCALA.flatMap(id=>PRESETS.find(p=>p.id===id).data).concat(sets.flatMap(c=>c.d));
+  const lo=Math.floor((Math.min(...tudo)-5)/5)*5, hi=Math.ceil((Math.max(...tudo)+5)/5)*5;
+  const W=Math.max(300,svg.parentNode.clientWidth), L=14, Rm=14, sx=v=>L+(v-lo)/(hi-lo)*(W-L-Rm);
+  const g=S('g',null,svg); let y=4;
+  for(const c of sets){
+    const cont={}; const pilha=c.d.map(v=>{const k=String(v); cont[k]=(cont[k]||0)+1; return cont[k]-1;});
+    const alt=Math.max(...pilha)+1, top=y;
+    const nm=S('text',{x:L,y:y+14,class:'reta-nome'},g); nm.textContent=c.nome;
+    const ax=y+24+alt*10+4;
+    const mt=S('text',{x:sx(c.m)+(sx(c.m)>W*0.75?-6:6),y:y+14,'text-anchor':sx(c.m)>W*0.75?'end':'start',class:'t-u halo'},g); mt.textContent='média = '+nf(c.m,2);
+    S('line',{x1:L,x2:W-Rm,y1:ax,y2:ax,class:'axis'},g);
+    for(const v of niceTicks(lo,hi,Math.max(4,Math.floor(W/70)))){S('line',{x1:sx(v),x2:sx(v),y1:ax,y2:ax+4,class:'axis'},g); const t=S('text',{x:sx(v),y:ax+15,'text-anchor':'middle'},g); t.textContent=nf(v,0);}
+    let fim=ax+20;
+    if(c.desv){const n=c.d.length, rh=Math.max(6,Math.min(9,90/n)); const y0=ax+26;
+      c.d.forEach((v,i)=>{const yy=y0+i*rh; const dv=v-c.m; if(Math.abs(dv)<1e-9){S('circle',{cx:sx(v),cy:yy,r:2,class:'reta-pt sem','data-k':c.id+':'+i},g);} else S('line',{x1:sx(c.m),x2:sx(v),y1:yy,y2:yy,class:'reta-d '+(dv>0?'pos':'neg'),'data-k':c.id+':'+i},g);});
+      fim=y0+n*rh; c.fimM=fim;
+      if(somas){const pos=c.d.reduce((a,v)=>a+Math.max(0,v-c.m),0), neg=c.d.reduce((a,v)=>a+Math.min(0,v-c.m),0);
+        const t=S('text',{x:L,y:fim+14,class:'reta-soma'},g);
+        const estreito=W<520, tot=nf(Math.abs(pos+neg)<1e-9?0:pos+neg,2);
+        t.innerHTML=`Desvios para cima: <tspan class="pos">+${nf(pos,2)}</tspan>${estreito?`<tspan x="${L}" dy="16">`:' · <tspan>'}para baixo: </tspan><tspan class="neg">−${nf(-neg,2)}</tspan> · soma: ${tot}`;
+        fim+=estreito?36:20;}
+    }
+    S('line',{x1:sx(c.m),x2:sx(c.m),y1:top+20,y2:c.fimM||fim,class:'reta-m'},g);
+    c.d.forEach((v,i)=>S('circle',{cx:sx(v),cy:ax-6-pilha[i]*10,r:4.5,class:'reta-pt','data-k':c.id+':'+i},g));
+    y=fim+(varios?18:6);
+  }
+  svg.setAttribute('viewBox',`0 0 ${W} ${y}`);
+  retaLiga();
+}
+function retaAcende(i,on){
+  if(!$('#reta-svg')) return;
+  document.querySelectorAll(`#reta-svg [data-k="${st.preset}:${i}"]`).forEach(e=>e.classList.toggle('reta-on',on));
+  const tr=$('#sh-r'+i); if(tr) tr.classList.toggle('hi',on);
+}
+function retaLiga(){
+  if(!$('#reta-svg')) return;
+  const n=(st.raw||[]).length;
+  for(let i=0;i<n;i++){const tr=$('#sh-r'+i); if(tr&&!tr._reta){tr._reta=1;
+    tr.addEventListener('pointerenter',()=>retaAcende(i,true)); tr.addEventListener('pointerleave',()=>retaAcende(i,false));
+    tr.addEventListener('focusin',()=>retaAcende(i,true)); tr.addEventListener('focusout',()=>retaAcende(i,false));}}
+  document.querySelectorAll(`#reta-svg [data-k^="${st.preset}:"]`).forEach(e=>{const i=+e.dataset.k.split(':')[1];
+    e.style.cursor='pointer'; e.addEventListener('pointerenter',()=>retaAcende(i,true)); e.addEventListener('pointerleave',()=>retaAcende(i,false));
+    e.addEventListener('click',()=>{const tr=$('#sh-r'+i); if(tr) tr.scrollIntoView({block:'nearest',behavior:'smooth'});});});
+}
 function renderRep(){
   const q=R[RI], box=$('#r-rep'); if(!q.rep||!st.raw){box.hidden=true; box.innerHTML=''; return;}
   box.hidden=false; const S=repState();
@@ -1667,13 +1740,13 @@ const BANCO=[
  {part:1,ativ:'A1',title:'A média representa a amostra?',
   ask:'Em suas palavras: quando a média é uma boa representante de uma amostra, e como o desvio-padrão ajuda a saber isso?',type:'text',
   com:'A média é o número que menos perde ao substituir todos os dados (no sentido dos erros ao quadrado). Mas "o que menos perde" não quer dizer "que perde pouco". O desvio-padrão diz quanto se perde: se é pequeno perto da média (metrô: 1 em 40), ela resume bem a amostra; se é grande (ônibus: 23 em 44), a média esconde a maior parte da história, e é preciso olhar a distribuição inteira, que é o que o simulador faz.'},
- {part:1,ativ:'A1',title:'Desvio-padrão do metrô',sheet:1,enter:()=>{loadPresetById('metro');},
+ {part:1,ativ:'A1',title:'Desvio-padrão do metrô',sheet:1,reta:true,enter:()=>{loadPresetById('metro');},
   ctx:'O desvio-padrão usa todos os valores: calcule os desvios em relação à média, eleve ao quadrado, tire a média desses quadrados (a variância) e, por fim, a raiz quadrada.',
   ask:'Calcule o desvio-padrão dos tempos do metrô (dividindo por n).',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd,
   com:()=>MOD?'Repare: 1,095 é exatamente √1,2, a raiz da perda mínima que você achou no gráfico do metrô. O desvio-padrão é o erro típico de trocar cada viagem pela média: no metrô, dizer "40 min" erra cerca de 1 minuto para mais ou para menos.':'É o mesmo número que você leu no gráfico da perda, √(perda mínima): o desvio-padrão é o erro típico de trocar cada viagem pela média.'},
- {part:1,ativ:'A1',title:'Desvio-padrão do ônibus',sheet:2,enter:()=>{loadPresetById('onibus');},
+ {part:1,ativ:'A1',title:'Desvio-padrão do ônibus',sheet:2,reta:true,enter:()=>{loadPresetById('onibus');},
   ask:'Repita o cálculo para o ônibus: qual o desvio-padrão dos tempos (dividindo por n)?',type:'num',unit:'min',ans:()=>st.sd,tol:0.1,hint:hintSd},
- {part:1,ativ:'A1',title:'Por que elevar ao quadrado?',
+ {part:1,ativ:'A1',title:'Por que elevar ao quadrado?',reta:['metro','onibus'],retaDesvios:'todos',retaSomas:true,
   ask:'Na tabela, a coluna x − média somou 0, tanto no metrô quanto no ônibus. Por que o cálculo do desvio-padrão eleva os desvios ao quadrado em vez de simplesmente somá-los?',type:'choice',
   opts:[{t:'Para deixar os números maiores e mais fáceis de comparar.',fb:'Os números ficam maiores, mas esse não é o motivo. Pense no que acontece com os desvios negativos.'},
         {t:'Porque os desvios positivos e negativos se cancelam: a soma deles é sempre 0. O quadrado deixa todos positivos.',ok:true,fb:'Isso. Viagens acima e abaixo da média se compensam na soma simples, que sempre dá 0 e não mede nada. Com o quadrado, todo afastamento conta. A raiz no final devolve a unidade original (minutos).'},
@@ -1688,7 +1761,7 @@ const BANCO=[
  {part:1,ativ:'A1x',title:'Linha 2: amplitude',enter:()=>{loadPresetById('onibus2');},
   ask:'Calcule a média e a amplitude da linha 2. Digite aqui a amplitude.',type:'num',unit:'min',ans:amp,tol:0.01,hint:'Maior tempo menos menor tempo.',
   com:'A linha 2 tem média 44 e amplitude 65, exatamente como a linha 1. Pela média e pela amplitude, as duas seriam iguais.'},
- {part:1,ativ:'A1x',title:'Linha 2: desvio-padrão',sheet:2,enter:()=>{loadPresetById('onibus2');},
+ {part:1,ativ:'A1x',title:'Linha 2: desvio-padrão',sheet:2,reta:['onibus','onibus2'],enter:()=>{loadPresetById('onibus2');},
   ask:'Agora calcule o desvio-padrão da linha 2 (dividindo por n).',type:'num',unit:'min',ans:()=>st.sd,tol:0.05,hint:hintSd,
   com:'Cerca de 14,6 min, contra 23,5 min da linha 1. O desvio-padrão enxerga uma diferença que a amplitude não enxergou.'},
  {part:1,ativ:'A1x',title:'Mesma amplitude, riscos diferentes',enter:()=>{loadPresetById('onibus2');},acts:[{l:'Ver os tijolinhos da linha 1',ds:'onibus',f:()=>{loadPresetById('onibus');setTab('show');go('#builder');}},{l:'Ver os tijolinhos da linha 2',ds:'onibus2',f:()=>{loadPresetById('onibus2');setTab('show');go('#builder');}}],
@@ -1933,7 +2006,7 @@ function renderRoteiro(runEnter){
     $('#enun-body').innerHTML=`<div class="enun-box"><b>${E.box}</b><p>${E.txt}</p></div><p class="enun-d">${E.dados}</p><ul>${E.linhas.map(([a,b])=>`<li><b>${a}:</b> <span class="mono">[${b}]</span></li>`).join('')}</ul><p class="enun-q">${E.q}</p>`;}
   else en.hidden=true;
   const ctx=$('#r-ctx'); ctx.hidden=!q.ctx; ctx.textContent=q.ctx||'';
-  const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; if(a.ds){b.dataset.ds=a.ds; b.classList.add('ds');} b.onclick=()=>{if(st.busy)return; a.f(); if(a.ds){renderRep(); renderSheet();} marcaConjunto(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
+  const ac=$('#r-actions'); ac.innerHTML=''; (q.acts||[]).forEach(a=>{const b=document.createElement('button'); b.className='btn ghost'; b.textContent=a.l; if(a.ds){b.dataset.ds=a.ds; b.classList.add('ds');} b.onclick=()=>{if(st.busy)return; a.f(); if(a.ds){renderReta(); renderRep(); renderSheet();} marcaConjunto(); saveState(); logEv('acao',{resposta:a.l});}; ac.appendChild(b);}); ac.hidden=!(q.acts||[]).length;
   marcaConjunto();
   $('#r-ask').textContent=q.ask;
   const inp=$('#r-input'), a=ANS[RI]||{}; inp.innerHTML='';
@@ -1955,7 +2028,7 @@ function renderRoteiro(runEnter){
     inp.innerHTML=`<div class="r-answer"><textarea id="r-txt" aria-label="Sua resposta" placeholder="Escreva sua resposta aqui"></textarea></div>`;
     const t=$('#r-txt'); t.value=a.v||''; t.addEventListener('input',()=>{ANS[RI]={v:t.value,ok:false}; saveState(); const d=$('#r-dots').querySelector(`[data-i="${RI}"]`); if(d)d.classList.toggle('done',!!t.value);});
   }
-  renderSheet(); renderRep();
+  renderReta(); renderSheet(); renderRep(); retaLiga();
   $('#r-fb').hidden=true; const com=$('#r-com'); com.hidden=true;
   $('#r-showcom').hidden=!q.com||medida(q); $('#r-prev').disabled=RI===0; $('#r-next').textContent=RI===R.length-1?'Fim do roteiro':'Próxima ▸'; $('#r-next').disabled=RI===R.length-1;
   if(a.ok&&q.type==='num'&&!medida(q)) showFb('✓ Resposta correta.','ok');
