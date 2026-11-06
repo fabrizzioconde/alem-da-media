@@ -10,7 +10,7 @@
 <style>
 :root{
   --paper:#f5f7f9; --surface:#ffffff; --ink:#16212c; --muted:#5a6978; --grid:#e3e9ef; --rule:#cfd8e1;
-  --curve:#1f3b57; --step:#9fb0c0; --norm:#b7791f; --og:#6a4c9c; --u:#b3306a; --x:#0b7a72; --xsoft:rgba(11,122,114,.22); --usoft:rgba(179,48,106,.12); --neg:rgba(179,48,106,.07);
+  --curve:#1f3b57; --step:#9fb0c0; --norm:#b7791f; --og:#6a4c9c; --u:#b3306a; --x:#0b7a72; --xsoft:rgba(11,122,114,.22); --usoft:rgba(179,48,106,.12); --neg:rgba(179,48,106,.07); --acima:#2563b0;
   --btn:#1f3b57; --btnink:#ffffff; --focus:#b3306a;
   --serif:"Newsreader", Georgia, "Times New Roman", serif;
   --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -20,14 +20,14 @@
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --paper:#0e141a; --surface:#151e27; --ink:#e4ebf1; --muted:#93a3b2; --grid:#223040; --rule:#2e3d4d;
-    --curve:#a7c8e8; --step:#566a7d; --norm:#e0a84a; --og:#b9a0e6; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --neg:rgba(240,122,168,.08);
+    --curve:#a7c8e8; --step:#566a7d; --norm:#e0a84a; --og:#b9a0e6; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --neg:rgba(240,122,168,.08); --acima:#6aa6ec;
     --btn:#a7c8e8; --btnink:#0e141a; --focus:#f07aa8;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --paper:#0e141a; --surface:#151e27; --ink:#e4ebf1; --muted:#93a3b2; --grid:#223040; --rule:#2e3d4d;
-  --curve:#a7c8e8; --step:#566a7d; --norm:#e0a84a; --og:#b9a0e6; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --neg:rgba(240,122,168,.08);
+  --curve:#a7c8e8; --step:#566a7d; --norm:#e0a84a; --og:#b9a0e6; --u:#f07aa8; --x:#3fc6b9; --xsoft:rgba(63,198,185,.26); --usoft:rgba(240,122,168,.14); --neg:rgba(240,122,168,.08); --acima:#6aa6ec;
   --btn:#a7c8e8; --btnink:#0e141a; --focus:#f07aa8;
 }
 *{box-sizing:border-box}
@@ -207,6 +207,7 @@ body.sem-id .quadro, body.sem-id .layout, body.sem-id #builder, body.sem-id .wra
 .export{display:grid; gap:8px; border-top:1px solid var(--rule); padding-top:12px}
 .export b{font-size:13px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted)}
 .rep-err{stroke:var(--u); stroke-width:2.5; opacity:.7}
+.rep-err.acima{stroke:var(--acima)}
 .rep-pt{fill:var(--x); stroke:var(--surface); stroke-width:1.5}
 .rep-c{stroke:var(--u); stroke-width:2}
 .rep-curve{fill:none; stroke:var(--curve); stroke-width:2.2}
@@ -215,12 +216,12 @@ body.sem-id .quadro, body.sem-id .layout, body.sem-id #builder, body.sem-id .wra
 .reta-pt.sem{fill:var(--step)}
 .reta-m{stroke:var(--curve); stroke-width:2; stroke-dasharray:5 3}
 .reta-d{stroke-width:3; stroke-linecap:round; opacity:.75}
-.reta-d.pos{stroke:var(--x)} .reta-d.neg{stroke:var(--u)}
+.reta-d.pos{stroke:var(--acima)} .reta-d.neg{stroke:var(--u)}
 .reta-on{opacity:1!important; stroke-width:5}
 circle.reta-on{r:7; stroke:var(--ink); stroke-width:2}
 .reta-nome{font-family:var(--serif); font-size:14px; fill:var(--ink)}
 .reta-soma{font-size:12.5px; fill:var(--muted)}
-.reta-soma tspan.pos{fill:var(--x); font-weight:600} .reta-soma tspan.neg{fill:var(--u); font-weight:600}
+.reta-soma tspan.pos{fill:var(--acima); font-weight:600} .reta-soma tspan.neg{fill:var(--u); font-weight:600}
 .sheet-t tr.hi td{background:var(--usoft)}
 .sheet{border:1px solid var(--rule); border-radius:10px; padding:12px 14px; display:grid; gap:10px; background:var(--surface)}
 .sh-head{display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center}
@@ -1457,7 +1458,7 @@ function repFaixa(t){const q=R[RI]; const ids=[...new Set((q.acts||[]).filter(a=
   return {lo,hi,fmax:fmax*1.08,comum:ids.length>1};}
 function lossAt(c,t){const x=st.raw;let s=0;for(const v of x)s+=t==='abs'?Math.abs(v-c):(v-c)**2;return s;}
 /* Reta numérica: os dados como pontos numa reta só, a média como linha tracejada e, embaixo, cada desvio x − média
-   como um traço (verde para cima da média, magenta para baixo). Ligada à tabela de desvios: passar o mouse ou tocar
+   como um traço (azul para cima da média, magenta para baixo). Ligada à tabela de desvios: passar o mouse ou tocar
    numa linha da tabela acende o ponto e o traço correspondentes, e vice-versa. A escala é a mesma em todas as perguntas
    (metrô e ônibus lado a lado), para que o espalhamento seja comparável. q.reta: true (conjunto à vista) ou lista de ids. */
 const RETA_ESCALA=['metro','onibus','onibus2'];
@@ -1470,8 +1471,8 @@ function renderReta(){
   const sets=ids.map(id=>{const d=id===st.preset?st.raw.slice():PRESETS.find(p=>p.id===id).data.slice(); const m=d.reduce((a,b)=>a+b,0)/d.length;
     return {id,d,m,nome:nomeDe(id),desv:q.retaDesvios==='todos'||id===st.preset};});
   const varios=sets.length>1, somas=!!q.retaSomas;
-  const nota=somas?'Cada ponto é uma viagem; a linha tracejada é a média. Embaixo, cada traço é um desvio x − média: verde para cima da média, magenta para baixo. Compare o comprimento total dos verdes com o dos magentas.'
-    :'Cada ponto é uma viagem; a linha tracejada é a média. Embaixo, cada traço é o desvio x − média de uma linha da tabela (verde para cima da média, magenta para baixo). Passe o mouse ou toque numa linha da tabela, ou num ponto, para ver qual é qual.';
+  const nota=somas?'Cada ponto é uma viagem; a linha tracejada é a média. Embaixo, cada traço é um desvio x − média: azul para cima da média, magenta para baixo. Compare o comprimento total dos azuis com o dos magentas.'
+    :'Cada ponto é uma viagem; a linha tracejada é a média. Embaixo, cada traço é o desvio x − média de uma linha da tabela (azul para cima da média, magenta para baixo). Passe o mouse ou toque numa linha da tabela, ou num ponto, para ver qual é qual.';
   box.innerHTML=`<div class="sh-head"><b>Os dados na reta${varios?'':' · '+sets[0].nome}</b></div><p class="note">${nota}${varios?' A escala é a mesma para os conjuntos, para comparar o espalhamento.':''}</p><div class="chart"><svg id="reta-svg" role="img" aria-label="Dados numa reta numérica, com a média e os desvios"></svg></div>`;
   const svg=$('#reta-svg'); const tudo=RETA_ESCALA.flatMap(id=>PRESETS.find(p=>p.id===id).data).concat(sets.flatMap(c=>c.d));
   const lo=Math.floor((Math.min(...tudo)-5)/5)*5, hi=Math.ceil((Math.max(...tudo)+5)/5)*5;
@@ -1525,7 +1526,7 @@ function renderRep(){
   box.innerHTML=`<div class="sh-head"><b>Um número para representar todos${nmR?' · '+nmR:''}</b>
     <div class="seg sh-lv" role="group" aria-label="Tipo de perda"><button data-l="sq" aria-pressed="${S.loss==='sq'}">Perda (x − c)²</button><button data-l="abs" aria-pressed="${S.loss==='abs'}"${q.rep==='abs'?'':' hidden'}>Perda |x − c|</button></div></div>
     <p class="sh-dados">Dados${nmR?' · '+nmR:''}: <span class="mono">${dadosTexto()}</span></p>
-    <p class="note">Troque todos os dados por um único número c. Cada barra magenta é o erro dessa troca; a curva de baixo mostra a perda média para cada c. Arraste o controle ou clique no gráfico.${FX.comum?' Os eixos são os mesmos para os dois conjuntos, para comparar as alturas das curvas.':''}</p>
+    <p class="note">Troque todos os dados por um único número c. Cada barra é o erro dessa troca: azul quando o dado fica acima de c, magenta quando fica abaixo; a curva de baixo mostra a perda média para cada c. Arraste o controle ou clique no gráfico.${FX.comum?' Os eixos são os mesmos para os dois conjuntos, para comparar as alturas das curvas.':''}</p>
     <div class="row"><label for="rep-c">c =</label><input type="range" id="rep-c" min="${(lo-pad).toFixed(1)}" max="${(hi+pad).toFixed(1)}" step="0.1" value="${S.c}" style="flex:1;min-width:160px"><input type="text" id="rep-cv" inputmode="decimal" value="${nf(S.c,1)}" aria-label="Valor de c" style="width:80px"></div>
     <div class="chart"><svg id="rep-svg" role="img" aria-label="Erros de trocar cada dado por c e curva da perda"></svg></div>
     <div class="table-wrap"><table id="rep-t"></table></div>`;
@@ -1548,7 +1549,7 @@ function drawRep(){
   for(const v of niceTicks(0,fmax,3)){S('line',{x1:L,x2:W-Rm,y1:syB(v),y2:syB(v),class:'gridline'},g);const tx=S('text',{x:L-6,y:syB(v)+4,'text-anchor':'end'},g);tx.textContent=nf(v,1);}
   const p1=S('text',{x:L+4,y:bot0-8,class:'t-panel'},g); p1.textContent=t==='abs'?'Perda média Σ|x − c| ÷ n':'Perda média Σ(x − c)² ÷ n';
   // linhas das observações
-  x.forEach((v,i)=>{const y=top0+rowH*(i+0.5)+4; S('line',{x1:sx(v),x2:sx(RS.c),y1:y,y2:y,class:'rep-err'},g); S('circle',{cx:sx(v),cy:y,r:4,class:'rep-pt'},g);});
+  x.forEach((v,i)=>{const y=top0+rowH*(i+0.5)+4; S('line',{x1:sx(v),x2:sx(RS.c),y1:y,y2:y,class:'rep-err'+(v>RS.c?' acima':'')},g); S('circle',{cx:sx(v),cy:y,r:4,class:'rep-pt'},g);});
   S('line',{x1:sx(RS.c),x2:sx(RS.c),y1:top0,y2:bot0+H2,class:'rep-c'},g);
   S('line',{x1:L,x2:W-Rm,y1:bot0+H2,y2:bot0+H2,class:'axis'},g); S('line',{x1:L,x2:L,y1:bot0,y2:bot0+H2,class:'axis'},g);
   S('path',{d:cs.map((c,i)=>(i?'L':'M')+sx(c)+','+syB(f(c))).join(' '),class:'rep-curve'},g);
